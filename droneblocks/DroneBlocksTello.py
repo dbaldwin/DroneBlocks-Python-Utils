@@ -115,7 +115,8 @@ if __name__ == '__main__':
 
     test_matrix = test_drone.get_blank_display_matrix()
 
-    test_drone.display_smile()
+    smile = test_drone.get_smile()
+    test_drone.display_image(smile)
 
     # up = test_drone.up_arrow_matrix()
     # print(up)
