@@ -15,6 +15,12 @@ Some of the features:
 pip install https://github.com/dbaldwin/DroneBlocks-Python-Utils/archive/master.zip
 ```
 
+#### Locally
+```shell
+pip install /Users/patrickryan/Development/droneblocks/DroneBlocks-Python-Utils
+
+```
+
 ## Usage
 
 ### Simple Tello Example

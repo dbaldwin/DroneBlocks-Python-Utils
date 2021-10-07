@@ -2,13 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='droneblocks-python-utils',
-    version='0.1',
-    packages=find_packages(include=['droneblocks', 'droneblocks.*', 'droneblocksutils', 'droneblocksutils.*']),
+    version='0.1.1',
+    packages=['droneblocks', 'droneblocksutils'],
     package_data={
         'droneblocks': ['data/placeholder.txt']
     },
     url='https://github.com/dbaldwin/DroneBlocks-Python-Utils',
-    license='',
+    license='MIT',
     author='patrick ryan',
     author_email='theyoungsoul@gmail.com',
     description='DroneBlocks Python Utilities',
@@ -17,5 +17,10 @@ setup(
         'opencv-contrib-python==4.5.3.56',
         'imutils==0.5.4',
         'djitellopy2==2.3',
-    ]
+    ],
+    entry_points={
+        'console_scripts':[
+            'telloscriptrunner=droneblocks.tello_script_runner:main',
+        ]
+    }
 )

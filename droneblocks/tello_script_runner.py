@@ -28,7 +28,6 @@ MAX_VIDEO_Q_DEPTH = 10
 # put into the video queue
 show_video_per_second = 0.3
 
-
 # This is hard coded because if the image gets too big then
 # the lag in the video stream gets very pronounced.  This is
 # parameter that will be system configured and the user will
@@ -38,6 +37,7 @@ IMAGE_WIDTH = 500
 TELLO_VIDEO_WINDOW_NAME = "Tello Video"
 ORIGINAL_VIDEO_WINDOW_NAME = "Original"
 KEYBOARD_CMD_WINDOW_NAME = "Keyboard Cmds"
+
 
 # function to handle keyboard interrupt
 def signal_handler(sig, frame):
@@ -75,10 +75,10 @@ tello_image = None
 
 
 def _display_text(image, text, bat_left):
-    cv2.putText(image, text, (50, int(image.shape[0]*0.90)), cv2.FONT_HERSHEY_SIMPLEX, 1,
+    cv2.putText(image, text, (50, int(image.shape[0] * 0.90)), cv2.FONT_HERSHEY_SIMPLEX, 1,
                 (255, 0, 0), 2, cv2.LINE_AA)  #
 
-    cv2.putText(image, f"Battery: {bat_left}%", (int(image.shape[1]*0.55), 40), cv2.FONT_HERSHEY_SIMPLEX, 1,
+    cv2.putText(image, f"Battery: {bat_left}%", (int(image.shape[1] * 0.55), 40), cv2.FONT_HERSHEY_SIMPLEX, 1,
                 (255, 0, 0), 2, cv2.LINE_AA)
 
     cv2.imshow(KEYBOARD_CMD_WINDOW_NAME, image)
@@ -86,10 +86,12 @@ def _display_text(image, text, bat_left):
 
     return key
 
+
 battery_update_timestamp = 0
 battery_left = "??"
 last_command_timestamp = 0
 last_command = ""
+
 
 def _exception_safe_process_keyboard_commands(tello, fly):
     try:
@@ -98,6 +100,7 @@ def _exception_safe_process_keyboard_commands(tello, fly):
         LOGGER.error("Error processing keyboard command")
         LOGGER.error(f"{exc}")
         return 1
+
 
 def _process_keyboard_commands(tello, fly):
     """
@@ -210,8 +213,6 @@ def _process_keyboard_commands(tello, fly):
     return exit_flag
 
 
-
-
 def _get_video_frame(frame_read, vid_sim):
     f = None
     try:
@@ -230,7 +231,8 @@ def _get_video_frame(frame_read, vid_sim):
     return f
 
 
-def process_tello_video_feed(handler_file, video_queue, stop_event, video_event, fly=False, tello_video_sim=False, display_tello_video=False):
+def process_tello_video_feed(handler_file, video_queue, stop_event, video_event, fly=False, tello_video_sim=False,
+                             display_tello_video=False):
     """
 
     :param exit_event: Multiprocessing Event.  When set, this event indicates that the process should stop.
@@ -253,7 +255,7 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
     handler_method = None
 
     try:
-        if fly or ( not tello_video_sim and display_tello_video):
+        if fly or (not tello_video_sim and display_tello_video):
             tello = Tello()
             rtn = tello.connect()
             LOGGER.debug(f"Connect Return: {rtn}")
@@ -329,11 +331,13 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
 
     LOGGER.info("Leaving User Script Processing Thread.....")
 
-if __name__ == '__main__':
+
+def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
     ap = argparse.ArgumentParser()
+    ap.add_argument("--test-install", action='store_true', help="Test the command can run, then exit and do nothing")
     ap.add_argument("--display-video", action='store_true', help="Display Drone video using OpenCV.  Default: 1")
     ap.add_argument("--save-video", action='store_true', help="Save video as MP4 file.  Default: False")
     ap.add_argument("--handler", type=str, required=False, default="",
@@ -347,9 +351,12 @@ if __name__ == '__main__':
     fly_sim_group.add_argument("--tello-video-sim", action='store_true',
                                help="Flag to control whether to use the computer webcam as a simulated Tello video feed. Default: False")
     ap.add_argument("--show-original-video", action='store_true',
-                               help="Flag to control whether to show the original video frame from the Tello along with frame processed by the handler function. Default: False")
+                    help="Flag to control whether to show the original video frame from the Tello along with frame processed by the handler function. Default: False")
 
     args = vars(ap.parse_args())
+    if args['test_install']:
+        print("Install worked and the Tello Script Runner can be executed")
+        sys.exit(0)
 
     LOGGER.setLevel(logging.ERROR)
     if args["verbose"]:
@@ -374,7 +381,6 @@ if __name__ == '__main__':
     # video queue to hold the frames from the Tello
     video_queue = queue.Queue(maxsize=MAX_VIDEO_Q_DEPTH)
 
-
     try:
         # TELLO_LOGGER = logging.getLogger('djitellopy')
         # TELLO_LOGGER.setLevel(logging.ERROR)
@@ -392,11 +398,12 @@ if __name__ == '__main__':
             cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200, 100)
             cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 700, 100)
 
-
         stop_event = threading.Event()
         ready_to_show_video_event = threading.Event()
         p1 = threading.Thread(target=process_tello_video_feed,
-                     args=(handler_file, video_queue, stop_event, ready_to_show_video_event, fly, tello_video_sim, display_video,))
+                              args=(
+                              handler_file, video_queue, stop_event, ready_to_show_video_event, fly, tello_video_sim,
+                              display_video,))
         p1.setDaemon(True)
         p1.start()
 
@@ -425,8 +432,7 @@ if __name__ == '__main__':
                 frame = frames[0]
             except:
                 frame = None
-                frames=[]
-
+                frames = []
 
             # check for video feed
             if display_video and frame is not None:
@@ -457,3 +463,7 @@ if __name__ == '__main__':
         cv2.destroyWindow("Keyboard Cmds")
         cv2.destroyAllWindows()
         shutdown_gracefully()
+
+
+if __name__ == '__main__':
+    main()
