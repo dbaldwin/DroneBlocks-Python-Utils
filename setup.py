@@ -1,11 +1,14 @@
 from setuptools import setup, find_packages
+from glob import glob
 
 setup(
     name='droneblocks-python-utils',
     version='0.1.1',
     packages=['droneblocks', 'droneblocksutils'],
+    include_package_data=True,
     package_data={
-        'droneblocks': ['data/placeholder.txt']
+        'media': glob('media/*'),
+        'data': glob('data/*')
     },
     url='https://github.com/dbaldwin/DroneBlocks-Python-Utils',
     license='MIT',

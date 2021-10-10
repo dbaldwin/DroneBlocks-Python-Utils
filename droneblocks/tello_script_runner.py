@@ -12,6 +12,7 @@ import imutils
 import threading
 import queue
 import traceback
+import pkgutil
 
 FORMAT = '%(asctime)-15s %(levelname)-10s %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -75,14 +76,16 @@ tello_image = None
 
 
 def _display_text(image, text, bat_left):
-    cv2.putText(image, text, (50, int(image.shape[0] * 0.90)), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                (255, 0, 0), 2, cv2.LINE_AA)  #
+    key = -666 # set to a non-existent key
+    if image is not None:
+        cv2.putText(image, text, (50, int(image.shape[0] * 0.90)), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                    (255, 0, 0), 2, cv2.LINE_AA)  #
 
-    cv2.putText(image, f"Battery: {bat_left}%", (int(image.shape[1] * 0.55), 40), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                (255, 0, 0), 2, cv2.LINE_AA)
+        cv2.putText(image, f"Battery: {bat_left}%", (int(image.shape[1] * 0.55), 40), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                    (255, 0, 0), 2, cv2.LINE_AA)
 
-    cv2.imshow(KEYBOARD_CMD_WINDOW_NAME, image)
-    key = cv2.waitKey(150) & 0xff
+        cv2.imshow(KEYBOARD_CMD_WINDOW_NAME, image)
+        key = cv2.waitKey(150) & 0xff
 
     return key
 
@@ -116,7 +119,21 @@ def _process_keyboard_commands(tello, fly):
 
     if tello_image is None:
         tello_image = cv2.imread("./media/tello_drone_image2.png")
-        tello_image = imutils.resize(tello_image, width=IMAGE_WIDTH)
+        if tello_image is not None:
+            tello_image = imutils.resize(tello_image, width=IMAGE_WIDTH)
+        else:
+            # we may have pip installed this library and we need to look in the installed package
+            # directory structure
+            droneblocks_package = pkgutil.get_loader("droneblocks")
+            droneblocks_init_file_path = droneblocks_package.get_filename()
+            # '/Users/patrickryan/Development/junk-projects/junk11/venv/lib/python3.8/site-packages/droneblocks/__init__.py'
+            package_image_path = droneblocks_init_file_path.replace("__init__.py", "media/tello_drone_image2.png")
+            tello_image = cv2.imread(package_image_path)
+            if tello_image is not None:
+                tello_image = imutils.resize(tello_image, width=IMAGE_WIDTH)
+            else:
+                print("Could not ready file media/tello_drone_image2.png")
+
 
     if tello and time.time() - battery_update_timestamp > 10:
         battery_update_timestamp = time.time()
@@ -284,7 +301,6 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
 
         while not stop_event.isSet():
             frame = _get_video_frame(frame_read, tello_video_sim)
-            original_frame = frame.copy()
 
             if frame is None:
                 # LOGGER.debug("Failed to read video frame")
@@ -295,6 +311,8 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
                 #     if fly:
                 #         tello.send_rc_control(0, 0, 0, 0)
                 continue
+
+            original_frame = frame.copy()
 
             if handler_method:
                 rtn_frame = handler_method(tello, frame, fly)
@@ -356,6 +374,9 @@ def main():
     args = vars(ap.parse_args())
     if args['test_install']:
         print("Install worked and the Tello Script Runner can be executed")
+        import os
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        print(dir_path)
         sys.exit(0)
 
     LOGGER.setLevel(logging.ERROR)

@@ -80,6 +80,9 @@ class DroneBlocksTello(Tello):
     def display_heart(self, display_color=PURPLE):
         return self.send_command_with_return(f"EXT mled s {display_color} heart")
 
+    def display_character(self, single_character, display_color=PURPLE):
+        return self.send_command_with_return(f"EXT mled s {display_color} {single_character}")
+
     def get_smile(self, display_color=PURPLE):
         
         smile = DroneBlocksTello.get_blank_display_matrix()
