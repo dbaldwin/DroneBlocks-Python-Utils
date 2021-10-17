@@ -35,16 +35,27 @@ class DroneBlocksTello(Tello):
         pattern = ''.join(pattern_matrix.flatten().tolist())
         return self.send_command_with_return(f"EXT mled g {pattern}")
 
-    def set_led_color(self, r: int, g: int, b: int, freq: float = 0.0) -> str:
-        if freq > 0.0:
-            if freq > 2.5:
-                freq = 2.5
+    def pulse_top_led(self, r: int, g: int, b: int, freq: float = 2.5) -> str:
+        """
+        The top LED displays the pulse effect according to the max pulse brightness (r, g, b) and pulse frequency t.
+        The cycle from dimmest to brightest to dimmest again is counted as one pulse.
+            r, g, b: 0~255
+            freq: 0.1-2.5Hz
+        :return: OK/ERROR
+        """
+        if 0.1 <= freq <= 2.5 and 0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255:
             return self.send_command_with_return(f"EXT led br {freq} {r} {g} {b}")
         else:
-            return self.send_command_with_return(f"EXT led {r} {g} {b}")
+            return f"ERROR: Invalid input parameters"
 
-    def blink_led_color(self, r1: int, g1: int, b1: int, r2: int = 0, g2: int = 0, b2: int = 0,
-                        freq: float = 0.1) -> str:
+    def set_top_led(self, r: int, g: int, b: int) -> str:
+        if 0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255:
+            return self.send_command_with_return(f"EXT led {r} {g} {b}")
+        else:
+            return "error"
+
+    def alternate_top_led(self, r1: int, g1: int, b1: int, r2: int = 0, g2: int = 0, b2: int = 0,
+                          freq: float = 2.5) -> str:
         return self.send_command_with_return(f"EXT led bl {freq} {r1} {g1} {b1} {r2} {g2} {b2}")
 
 
