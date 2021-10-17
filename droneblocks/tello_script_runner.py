@@ -1,5 +1,5 @@
 import cv2
-from djitellopy import Tello
+from droneblocks.DroneBlocksTello import DroneBlocksTello
 import signal
 import sys
 import time
@@ -317,10 +317,10 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
 
     try:
         if fly or (not tello_video_sim and display_tello_video):
-            tello = Tello()
+            tello = DroneBlocksTello()
             rtn = tello.connect()
             LOGGER.debug(f"Connect Return: {rtn}")
-            speed = tello.query_speed()
+            speed = tello.get_speed()
 
         if handler_file:
             handler_file = handler_file.replace(".py", "")

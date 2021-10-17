@@ -35,6 +35,15 @@ class DroneBlocksTello(Tello):
         pattern = ''.join(pattern_matrix.flatten().tolist())
         return self.send_command_with_return(f"EXT mled g {pattern}")
 
+    def get_speed(self) -> int:
+        """Query speed setting (cm/s)
+        Returns:
+            int: 1-100
+        """
+        speed_value = self.send_read_command('speed?')
+        return int(float(speed_value))
+
+
     def pulse_top_led(self, r: int, g: int, b: int, freq: float = 2.5) -> str:
         """
         The top LED displays the pulse effect according to the max pulse brightness (r, g, b) and pulse frequency t.
