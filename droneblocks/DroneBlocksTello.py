@@ -67,7 +67,6 @@ class DroneBlocksTello(Tello):
                           freq: float = 2.5) -> str:
         return self.send_command_with_return(f"EXT led bl {freq} {r1} {g1} {b1} {r2} {g2} {b2}")
 
-
     def get_up_arrow(self, display_color=PURPLE):
         up = self._up_arrow_matrix(display_color)
         return up
@@ -78,13 +77,11 @@ class DroneBlocksTello(Tello):
         return down
 
     def get_left_arrow(self, display_color=PURPLE):
-        
         up = self._up_arrow_matrix(display_color)
         left = np.rot90(up)
         return left
 
     def get_right_arrow(self, display_color=PURPLE):
-        
         up = self._up_arrow_matrix(display_color)
         left = np.rot90(up)
         right = np.fliplr(left)
