@@ -20,5 +20,11 @@ setup(
         'opencv-contrib-python==4.5.3.56',
         'imutils==0.5.4',
         'djitellopy2==2.3',
-    ]
+    ],
+    entry_points={
+        'console_scripts':[
+            'telloscriptrunner=droneblocks.tello_script_runner:main',
+            'tt-matrix-generator=droneblocks.tt_matrix_generator:main'
+        ]
+    }
 )

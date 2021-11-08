@@ -1,5 +1,4 @@
 from djitellopy import Tello
-import numpy as np
 
 
 class DroneBlocksTello(Tello):
@@ -17,9 +16,9 @@ class DroneBlocksTello(Tello):
 
     @classmethod
     def get_blank_display_matrix(cls):
-        return np.full((8,8), '0', dtype=str)
+        return "0000000000000000000000000000000000000000000000000000000000000000"
 
-    def _up_arrow_matrix(self, display_color=PURPLE):
+    def _up_arrow_matrix(self, display_color:str=PURPLE) -> str:
         up = DroneBlocksTello.get_blank_display_matrix()
         up[0, 3:5] = display_color
         up[1, 2:6] = display_color
@@ -31,7 +30,7 @@ class DroneBlocksTello(Tello):
         up[7, 3:5] = display_color
         return up
 
-    def _display_pattern(self, flattened_matrix):
+    def _display_pattern(self, flattened_matrix:str ) -> str:
         return self.send_command_with_return(f"EXT mled g {flattened_matrix}")
 
     def get_speed(self) -> int:
@@ -66,58 +65,59 @@ class DroneBlocksTello(Tello):
                           freq: float = 2.5) -> str:
         return self.send_command_with_return(f"EXT led bl {freq} {r1} {g1} {b1} {r2} {g2} {b2}")
 
-    def get_up_arrow(self, display_color=PURPLE):
-        up = self._up_arrow_matrix(display_color)
-        return ''.join(up.flatten().tolist())
+    def change_image_color(self, image_string, from_color, to_color):
+        image_string.replace(DroneBlocksTello.BLUE, DroneBlocksTello.PURPLE)
+        return image_string
 
-    def get_down_arrow(self, display_color=PURPLE):
-        up = self._up_arrow_matrix(display_color)
-        down = np.flipud(up)
-        return ''.join(down.flatten().tolist())
+    def get_up_arrow(self, display_color:str=BLUE) -> str:
+        up = "000bb00000bbbb000bbbbbb0000bb000000bb000000bb000000bb000000bb000"
+        up = self.change_image_color(up, DroneBlocksTello.BLUE, display_color)
+        return up
 
-    def get_left_arrow(self, display_color=PURPLE):
-        up = self._up_arrow_matrix(display_color)
-        left = np.rot90(up)
-        return ''.join(left.flatten().tolist())
+    def get_down_arrow(self, display_color:str=BLUE) -> str:
+        down = "000bb000000bb000000bb000000bb000000bb0000bbbbbb000bbbb00000bb000"
+        down = self.change_image_color(down, DroneBlocksTello.BLUE, display_color)
+        return down
 
-    def get_right_arrow(self, display_color=PURPLE):
-        up = self._up_arrow_matrix(display_color)
-        left = np.rot90(up)
-        right = np.fliplr(left)
-        return ''.join(right.flatten().tolist())
+    def get_left_arrow(self, display_color:str=BLUE) -> str:
+        left = "0000000000b000000bb00000bbbbbbbbbbbbbbbb0bb0000000b0000000000000"
+        left = self.change_image_color(left, DroneBlocksTello.BLUE, display_color)
+        return left
 
-    def display_image(self, flattened_image_matrix:str):
-        return self._display_pattern(flattened_image_matrix)
+    def get_right_arrow(self, display_color:str=BLUE) -> str:
+        right = "0000000000000b0000000bb0bbbbbbbbbbbbbbbb00000bb000000b0000000000"
+        right = self.change_image_color(right, DroneBlocksTello.BLUE, display_color)
+        return right
+
+    def display_image(self, display_string:str) -> str:
+        return self._display_pattern(display_string)
 
     def clear_display(self) -> str:
         display = DroneBlocksTello.get_blank_display_matrix()
-        display = ''.join(display.flatten().tolist())
         return self._display_pattern(display)
 
-    def display_heart(self, display_color=PURPLE):
+    def clear_everything(self):
+        self.clear_display()
+        self.set_top_led(r=0, g=0, b=0)
+
+    def display_heart(self, display_color:str=PURPLE) -> str:
         return self.send_command_with_return(f"EXT mled s {display_color} heart")
 
-    def display_character(self, single_character, display_color=PURPLE):
+    def display_character(self, single_character:str, display_color:str=PURPLE) -> str:
         return self.send_command_with_return(f"EXT mled s {display_color} {single_character}")
 
-    def get_smile(self, display_color=PURPLE):
-        
-        smile = DroneBlocksTello.get_blank_display_matrix()
-        smile[0, 2] = display_color
-        smile[0, 5] = display_color
-        smile[2, 3:5] = display_color
-        smile[3, 3:5] = display_color
-        smile[4, 1] = display_color
-        smile[4, 6] = display_color
-        smile[5, 1] = display_color
-        smile[5, 6] = display_color
-        smile[6, 2] = display_color
-        smile[6, 5] = display_color
-        smile[7, 3:5] = display_color
-        return ''.join(smile.flatten().tolist())
+    def get_smile(self, display_color:str=PURPLE) -> str:
+        smile_image = "0000000000b00b0000000000000bb000b00bb00bb000000b0b0000b000bbbb00"
+        smile_image = self.change_image_color(smile_image, DroneBlocksTello.BLUE, display_color)
+        return smile_image
 
-    def scroll_image(self, flattened_image:str,  scroll_dir:str, rate:float=2.5)->str:
-        return self.send_command_with_return(f"EXT mled {scroll_dir} g {rate} {flattened_image}")
+    def get_sad(self, display_color:str=PURPLE) -> str:
+        sad_image = "0000000000b00b0000000000000bb000000bb000000000000bbbbbb0b000000b"
+        sad_image = self.change_image_color(sad_image, DroneBlocksTello.BLUE, display_color)
+        return sad_image
+
+    def scroll_image(self, display_string:str,  scroll_dir:str, rate:float=2.5)->str:
+        return self.send_command_with_return(f"EXT mled {scroll_dir} g {rate} {display_string}")
 
     def scroll_string(self, message:str,  scroll_dir:str, display_color:str=PURPLE, rate:float=2.5)->str:
         if len(message) > 70:

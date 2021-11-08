@@ -156,7 +156,7 @@ def _process_keyboard_commands(tello, fly):
     if tello and time.time() - battery_update_timestamp > 10:
         battery_update_timestamp = time.time()
         battery_left = tello.get_battery()
-        speed = tello.query_speed
+        speed = tello.query_speed()
         speed_x = tello.get_speed_x()
         speed_y = tello.get_speed_y()
         speed_z = tello.get_speed_z()
@@ -314,19 +314,24 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
     global tello, local_video_stream, speed
     last_show_video_queue_put_time = 0
     handler_method = None
+    stop_method = None
 
     try:
+        tello = DroneBlocksTello()
+        rtn = tello.connect()
         if fly or (not tello_video_sim and display_tello_video):
-            tello = DroneBlocksTello()
-            rtn = tello.connect()
             LOGGER.debug(f"Connect Return: {rtn}")
             speed = tello.get_speed()
 
         if handler_file:
             handler_file = handler_file.replace(".py", "")
             handler_module = importlib.import_module(handler_file)
+            if handler_module is None:
+                raise f"Could not locate handler file: {handler_file}"
+
             init_method = getattr(handler_module, 'init')
             handler_method = getattr(handler_module, 'handler')
+            stop_method = getattr(handler_module, 'stop', None)
 
             new_key_map = init_method(tello, fly_flag=fly)
             if new_key_map is not None:
@@ -391,6 +396,9 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
         # to be safe... stop all movement
         if fly:
             tello.send_rc_control(0, 0, 0, 0)
+
+        if stop_method:
+            stop_method(tello, fly_flag=fly)
 
         stop_event.clear()
 
@@ -458,7 +466,9 @@ def main():
     DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS = args['keyboard_flying_rotation']
 
     # video queue to hold the frames from the Tello
-    video_queue = queue.Queue(maxsize=MAX_VIDEO_Q_DEPTH)
+    video_queue = None
+    if display_video:
+        video_queue = queue.Queue(maxsize=MAX_VIDEO_Q_DEPTH)
 
     try:
         # TELLO_LOGGER = logging.getLogger('djitellopy')
@@ -504,8 +514,12 @@ def main():
             ready_to_show_video_event.set()
             try:
                 # LOGGER.debug(f"Q size: {video_queue.qsize()}")
-                frames = video_queue.get(block=False)
-                frame = frames[0]
+                if video_queue is not None:
+                    frames = video_queue.get(block=False)
+                    frame = frames[0]
+                else:
+                    frame = None
+                    frames = []
             except:
                 frame = None
                 frames = []

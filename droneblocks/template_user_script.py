@@ -31,3 +31,6 @@ def handler(tello, frame, fly_flag=False):
 
     print(f"Inside handler method.  fly_flag: {fly_flag}, sample config item: {SAMPLE_CONFIG_ITEM}")
     return
+
+def stop(tello, fly_flag=False):
+    pass

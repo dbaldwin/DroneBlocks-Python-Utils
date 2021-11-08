@@ -15,7 +15,7 @@ def init(tello, fly_flag=False):
     :rtype:
     """
 
-    # Create a key mapping for the Apple Keypad5
+    # Create a key mapping for the Apple Keypad
     new_key_map = {
         kmap.FORWARD: 56,
         kmap.BACKWARD: 50,
