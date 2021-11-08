@@ -18,18 +18,6 @@ class DroneBlocksTello(Tello):
     def get_blank_display_matrix(cls):
         return "0000000000000000000000000000000000000000000000000000000000000000"
 
-    def _up_arrow_matrix(self, display_color:str=PURPLE) -> str:
-        up = DroneBlocksTello.get_blank_display_matrix()
-        up[0, 3:5] = display_color
-        up[1, 2:6] = display_color
-        up[2, 1:7] = display_color
-        up[3, 0:8] = display_color
-        up[4, 3:5] = display_color
-        up[5, 3:5] = display_color
-        up[6, 3:5] = display_color
-        up[7, 3:5] = display_color
-        return up
-
     def _display_pattern(self, flattened_matrix:str ) -> str:
         return self.send_command_with_return(f"EXT mled g {flattened_matrix}")
 
@@ -95,6 +83,11 @@ class DroneBlocksTello(Tello):
     def clear_display(self) -> str:
         display = DroneBlocksTello.get_blank_display_matrix()
         return self._display_pattern(display)
+
+    def set_display_brightness(self, level:int) -> str:
+        if 0 <= level <= 255:
+            return self.send_command_with_return(f"EXT mled sl {level}")
+        return 'Invalid level value'
 
     def clear_everything(self):
         self.clear_display()
