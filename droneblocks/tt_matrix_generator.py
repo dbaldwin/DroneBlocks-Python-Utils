@@ -84,7 +84,7 @@ def mouse_events(event, x, y,
 
 
 
-WINDOW_NAME = '8x8 Matrix'
+WINDOW_NAME = 'DroneBlocks TT Pattern Generator'
 
 
 def _generate_display_string():
