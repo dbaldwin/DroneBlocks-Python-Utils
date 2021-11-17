@@ -45,6 +45,10 @@ KEYBOARD_CMD_WINDOW_NAME = "Keyboard Cmds"
 # useful to debug to get the actual key value for specific keyboards.
 LOG_KEY_PRESS_VALUES = False
 
+# Global value holding the last key pressed.
+# value will be key from the tello_keyboard_mapper.py file
+g_key_press_value=None
+
 # Global state of Tello, last read or set values
 battery_update_timestamp = 0
 battery_left = "--"
@@ -117,7 +121,7 @@ def _exception_safe_process_keyboard_commands(tello, fly):
     except Exception as exc:
         LOGGER.error("Error processing keyboard command")
         LOGGER.error(f"{exc}")
-        return 1
+        return 1, None
 
 
 def _process_keyboard_commands(tello, fly):
@@ -135,6 +139,8 @@ def _process_keyboard_commands(tello, fly):
     global speed_x
     global speed_y
     global speed_z
+    global g_key_press_value
+
 
     if tello_image is None:
         tello_image = cv2.imread("./media/tello_drone_image2.png")
@@ -164,6 +170,7 @@ def _process_keyboard_commands(tello, fly):
     if time.time() - last_command_timestamp > 2:
         last_command_timestamp = time.time()
         last_command = ""
+        g_key_press_value = None
 
     exit_flag = 1
     cmd_tello_image = tello_image.copy()
@@ -181,75 +188,88 @@ def _process_keyboard_commands(tello, fly):
         LOGGER.debug(f"key: {key}")
 
     if key == keymapper.mapping[keymapper.LAND1]:
+        g_key_press_value=keymapper.LAND1
         last_command = "Land"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         exit_flag = 0
 
     elif key == keymapper.mapping[keymapper.FORWARD]:
+        g_key_press_value=keymapper.FORWARD
         last_command = "Forward"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         if fly:
             tello.move_forward(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.BACKWARD]:
+        g_key_press_value=keymapper.BACKWARD
         last_command = "Backward"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         if fly:
             tello.move_back(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.LEFT]:
+        g_key_press_value=keymapper.LEFT
         last_command = "Left"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         if fly:
             tello.move_left(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.RIGHT]:
+        g_key_press_value=keymapper.RIGHT
         last_command = "Right"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         if fly:
             tello.move_right(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.CLOCKWISE]:
+        g_key_press_value=keymapper.CLOCKWISE
         last_command = "Clockwise"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         if fly:
             tello.rotate_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.COUNTER_CLOCKWISE]:
+        g_key_press_value=keymapper.COUNTER_CLOCKWISE
         last_command = "Counter Clockwise"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         if fly:
             tello.rotate_counter_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.UP]:
+        g_key_press_value=keymapper.UP
         last_command = "Up"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         if fly:
             tello.move_up(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.DOWN]:
+        g_key_press_value=keymapper.DOWN
         last_command = "Down"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         if fly:
             tello.move_down(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.LAND2]:
+        g_key_press_value=keymapper.LAND2
         last_command = "Land"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         exit_flag = 0
 
     elif key == keymapper.mapping[keymapper.HOVER]:
+        g_key_press_value=keymapper.HOVER
         last_command = "Hover"
         _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
         if fly:
             tello.send_rc_control(0, 0, 0, 0)
 
     elif key == keymapper.mapping[keymapper.EMERGENCY]:
+        g_key_press_value=keymapper.EMERGENCY
         last_command = "Emergency"
         tello.emergency()
         exit_flag = 0  # stop processing the handler function but continue to fly and see video
 
     elif key == keymapper.mapping[keymapper.SPEED_INC]:
+        g_key_press_value=keymapper.SPEED_INC
         last_command = "Increase Speed"
         speed = speed + 5
         if speed > 100:
@@ -258,6 +278,7 @@ def _process_keyboard_commands(tello, fly):
         tello.set_speed(speed)
 
     elif key == keymapper.mapping[keymapper.SPEED_DEC]:
+        g_key_press_value=keymapper.SPEED_DEC
         last_command = "Decrease Speed"
         speed = speed - 5
         if speed < 20:
@@ -333,7 +354,11 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
             handler_method = getattr(handler_module, 'handler')
             stop_method = getattr(handler_module, 'stop', None)
 
-            new_key_map = init_method(tello, fly_flag=fly)
+            params = {}
+            params['fly_flag'] = fly
+            params['last_key_pressed'] = g_key_press_value
+
+            new_key_map = init_method(tello, params)
             if new_key_map is not None:
                 for k,v in new_key_map.items():
                     keymapper.mapping[k] = v
@@ -352,13 +377,16 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
             local_video_stream = VideoStream(src=0).start()
             time.sleep(2)
 
+        params = {}
         while not stop_event.isSet():
             frame = _get_video_frame(frame_read, tello_video_sim)
 
             if frame is None:
                 # LOGGER.debug("Failed to read video frame")
                 if handler_method:
-                    handler_method(tello, frame, fly)
+                    params['fly_flag']=fly
+                    params['last_key_pressed']=g_key_press_value
+                    handler_method(tello, frame, params)
                 # else:
                 #     # stop let keyboard commands take over
                 #     if fly:
@@ -398,7 +426,11 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
             tello.send_rc_control(0, 0, 0, 0)
 
         if stop_method:
-            stop_method(tello, fly_flag=fly)
+            params = {}
+            params['fly_flag'] = fly
+            params['last_key_pressed'] = g_key_press_value
+
+            stop_method(tello, params)
 
         stop_event.clear()
 
@@ -471,8 +503,8 @@ def main():
         video_queue = queue.Queue(maxsize=MAX_VIDEO_Q_DEPTH)
 
     try:
-        # TELLO_LOGGER = logging.getLogger('djitellopy')
-        # TELLO_LOGGER.setLevel(logging.ERROR)
+        TELLO_LOGGER = logging.getLogger('djitellopy')
+        TELLO_LOGGER.setLevel(logging.ERROR)
 
         cv2.namedWindow(TELLO_VIDEO_WINDOW_NAME, cv2.WINDOW_NORMAL)
         # cv2.resizeWindow(TELLO_VIDEO_WINDOW_NAME, 600, 600)

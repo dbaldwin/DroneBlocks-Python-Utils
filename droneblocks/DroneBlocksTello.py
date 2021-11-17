@@ -11,6 +11,14 @@ class DroneBlocksTello(Tello):
     BLUE    = 'b'
     RED     = 'r'
 
+    sad_image = "0000000000b00b0000000000000bb000000bb000000000000bbbbbb0b000000b"
+    smile_image = "0000000000b00b0000000000000bb000b00bb00bb000000b0b0000b000bbbb00"
+    up_arrow_image = "000bb00000bbbb000bbbbbb0000bb000000bb000000bb000000bb00000000000"
+    down_arrow_image = "00000000000bb000000bb000000bb000000bb0000bbbbbb000bbbb00000bb000"
+    left_arrow_image = "0000000000b000000bb00000bbbbbbb0bbbbbbb00bb0000000b0000000000000"
+    right_arrow_image = "0000000000000b0000000bb00bbbbbbb0bbbbbbb00000bb000000b0000000000"
+    question_mark = "000bb00000b00b0000b00b0000000b000000b0000000b000000000000000b000"
+
     def __init__(self):
         super().__init__()
 
@@ -53,29 +61,9 @@ class DroneBlocksTello(Tello):
                           freq: float = 2.5) -> str:
         return self.send_command_with_return(f"EXT led bl {freq} {r1} {g1} {b1} {r2} {g2} {b2}")
 
-    def change_image_color(self, image_string, from_color, to_color):
-        image_string.replace(DroneBlocksTello.BLUE, DroneBlocksTello.PURPLE)
-        return image_string
-
-    def get_up_arrow(self, display_color:str=BLUE) -> str:
-        up = "000bb00000bbbb000bbbbbb0000bb000000bb000000bb000000bb000000bb000"
-        up = self.change_image_color(up, DroneBlocksTello.BLUE, display_color)
-        return up
-
-    def get_down_arrow(self, display_color:str=BLUE) -> str:
-        down = "000bb000000bb000000bb000000bb000000bb0000bbbbbb000bbbb00000bb000"
-        down = self.change_image_color(down, DroneBlocksTello.BLUE, display_color)
-        return down
-
-    def get_left_arrow(self, display_color:str=BLUE) -> str:
-        left = "0000000000b000000bb00000bbbbbbbbbbbbbbbb0bb0000000b0000000000000"
-        left = self.change_image_color(left, DroneBlocksTello.BLUE, display_color)
-        return left
-
-    def get_right_arrow(self, display_color:str=BLUE) -> str:
-        right = "0000000000000b0000000bb0bbbbbbbbbbbbbbbb00000bb000000b0000000000"
-        right = self.change_image_color(right, DroneBlocksTello.BLUE, display_color)
-        return right
+    def change_image_color(self, image_string:str, from_color:str, to_color:str) -> str:
+        new_str = image_string.replace(from_color, to_color)
+        return new_str
 
     def display_image(self, display_string:str) -> str:
         return self._display_pattern(display_string)
@@ -99,18 +87,36 @@ class DroneBlocksTello(Tello):
     def display_character(self, single_character:str, display_color:str=PURPLE) -> str:
         return self.send_command_with_return(f"EXT mled s {display_color} {single_character}")
 
-    def get_smile(self, display_color:str=PURPLE) -> str:
-        smile_image = "0000000000b00b0000000000000bb000b00bb00bb000000b0b0000b000bbbb00"
-        smile_image = self.change_image_color(smile_image, DroneBlocksTello.BLUE, display_color)
-        return smile_image
+    def display_smile(self, display_color:str=PURPLE) -> str:
+        smile = self.change_image_color(DroneBlocksTello.smile_image, DroneBlocksTello.BLUE, display_color)
+        return self._display_pattern(smile)
 
-    def get_sad(self, display_color:str=PURPLE) -> str:
-        sad_image = "0000000000b00b0000000000000bb000000bb000000000000bbbbbb0b000000b"
-        sad_image = self.change_image_color(sad_image, DroneBlocksTello.BLUE, display_color)
-        return sad_image
+    def display_sad(self, display_color:str=PURPLE) -> str:
+        sad = self.change_image_color(DroneBlocksTello.sad_image, DroneBlocksTello.BLUE, display_color)
+        return self._display_pattern(sad)
 
-    def scroll_image(self, display_string:str,  scroll_dir:str, rate:float=2.5)->str:
-        return self.send_command_with_return(f"EXT mled {scroll_dir} g {rate} {display_string}")
+    def display_up_arrow(self, display_color:str=BLUE) -> str:
+        up = self.change_image_color(DroneBlocksTello.up_arrow_image, DroneBlocksTello.BLUE, display_color)
+        return self._display_pattern(up)
+
+    def display_down_arrow(self, display_color:str=BLUE) -> str:
+        down = self.change_image_color(DroneBlocksTello.down_arrow_image, DroneBlocksTello.BLUE, display_color)
+        return self._display_pattern(down)
+
+    def display_left_arrow(self, display_color:str=BLUE) -> str:
+        left = self.change_image_color(DroneBlocksTello.left_arrow_image, DroneBlocksTello.BLUE, display_color)
+        return self._display_pattern(left)
+
+    def display_right_arrow(self, display_color:str=BLUE) -> str:
+        right = self.change_image_color(DroneBlocksTello.right_arrow_image, DroneBlocksTello.BLUE, display_color)
+        return self._display_pattern(right)
+
+    def display_question_mark(self, display_color:str=BLUE) -> str:
+        question = self.change_image_color(DroneBlocksTello.question_mark, DroneBlocksTello.BLUE, display_color)
+        return self._display_pattern(question)
+
+    def scroll_image(self, image_string:str,  scroll_dir:str, rate:float=2.5)->str:
+        return self.send_command_with_return(f"EXT mled {scroll_dir} g {rate} {image_string}")
 
     def scroll_string(self, message:str,  scroll_dir:str, display_color:str=PURPLE, rate:float=2.5)->str:
         if len(message) > 70:

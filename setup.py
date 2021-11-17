@@ -19,7 +19,7 @@ setup(
         'opencv-python==4.5.3.56',
         'opencv-contrib-python==4.5.3.56',
         'imutils==0.5.4',
-        'djitellopy2==2.3',
+        'djitellopy==2.4',
     ],
     entry_points={
         'console_scripts':[

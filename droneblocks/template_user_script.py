@@ -1,7 +1,7 @@
 # User Configuration5
 SAMPLE_CONFIG_ITEM = 42
 
-def init(tello, fly_flag=False):
+def init(tello, params):
     """
 
     :param tello: Reference to the DJITelloPy Tello object.
@@ -12,10 +12,11 @@ def init(tello, fly_flag=False):
     :return: None
     :rtype:
     """
+    fly_flag = params['fly_flag']
     print(f"Inside init method.  fly_flag: {fly_flag}, sample config item: {SAMPLE_CONFIG_ITEM}")
     return None
 
-def handler(tello, frame, fly_flag=False):
+def handler(tello, frame, params):
     """
 
     :param tello: Reference to the DJITelloPy Tello object.
@@ -28,9 +29,14 @@ def handler(tello, frame, fly_flag=False):
     :return: None
     :rtype:
     """
+    fly_flag = None
+    last_key = None
+    if params:
+        fly_flag = params.get('fly_flag', False)
+        last_key = params.get('last_key_pressed', None)
 
     print(f"Inside handler method.  fly_flag: {fly_flag}, sample config item: {SAMPLE_CONFIG_ITEM}")
     return
 
-def stop(tello, fly_flag=False):
+def stop(tello, params):
     pass
