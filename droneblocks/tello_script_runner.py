@@ -3,7 +3,6 @@ from droneblocks.DroneBlocksTello import DroneBlocksTello
 import signal
 import sys
 import time
-from datetime import datetime
 import argparse
 import importlib
 import logging
@@ -58,6 +57,7 @@ speed = 0
 speed_x = 0
 speed_y = 0
 speed_z = 0
+height = 0
 
 DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS = 30
 DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS = 90
@@ -86,7 +86,7 @@ def shutdown_gracefully():
 tello_image = None
 
 
-def _display_text(image, text, bat_left, speed, speed_x, speed_y, speed_z ):
+def _display_text(image, text, bat_left, speed_param, speed_x_param, speed_y_param, speed_z_param, height_param):
     key = -666 # set to a non-existent key
     if image is not None:
         cv2.putText(image, text, (50, int(image.shape[0] * 0.90)), cv2.FONT_HERSHEY_SIMPLEX, 1,
@@ -95,18 +95,20 @@ def _display_text(image, text, bat_left, speed, speed_x, speed_y, speed_z ):
         cv2.putText(image, f"Battery: {bat_left}%", (int(image.shape[1] * 0.55), 40), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (255, 0, 0), 2, cv2.LINE_AA)
 
-        cv2.putText(image, f"Speed: {speed}", (int(image.shape[1] * 0.55), 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        cv2.putText(image, f"Speed: {speed_param}", (int(image.shape[1] * 0.55), 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (255, 0, 0), 2, cv2.LINE_AA)
 
-        cv2.putText(image, f"X: {speed_x}", (int(image.shape[1] * 0.75), 120), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        cv2.putText(image, f"X: {speed_x_param}", (int(image.shape[1] * 0.75), 120), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (255, 0, 0), 2, cv2.LINE_AA)
 
-        cv2.putText(image, f"Y: {speed_y}", (int(image.shape[1] * 0.75), 160), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        cv2.putText(image, f"Y: {speed_y_param}", (int(image.shape[1] * 0.75), 160), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (255, 0, 0), 2, cv2.LINE_AA)
 
-        cv2.putText(image, f"Z: {speed_z}", (int(image.shape[1] * 0.75), 200), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        cv2.putText(image, f"Z: {speed_z_param}", (int(image.shape[1] * 0.75), 200), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (255, 0, 0), 2, cv2.LINE_AA)
 
+        cv2.putText(image, f"H: {height_param}", (int(image.shape[1] * 0.75), 240), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                    (255, 0, 0), 2, cv2.LINE_AA)
 
 
         cv2.imshow(KEYBOARD_CMD_WINDOW_NAME, image)
@@ -140,7 +142,7 @@ def _process_keyboard_commands(tello, fly):
     global speed_y
     global speed_z
     global g_key_press_value
-
+    global height
 
     if tello_image is None:
         tello_image = cv2.imread("./media/tello_drone_image2.png")
@@ -166,6 +168,7 @@ def _process_keyboard_commands(tello, fly):
         speed_x = tello.get_speed_x()
         speed_y = tello.get_speed_y()
         speed_z = tello.get_speed_z()
+        height = tello.get_height()
 
     if time.time() - last_command_timestamp > 2:
         last_command_timestamp = time.time()
@@ -174,7 +177,7 @@ def _process_keyboard_commands(tello, fly):
 
     exit_flag = 1
     cmd_tello_image = tello_image.copy()
-    key = _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+    key = _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
 
     # because getting keyboard input is a polling process, someone might
     # hold down a key to get the command to register. To avoid getting
@@ -190,75 +193,75 @@ def _process_keyboard_commands(tello, fly):
     if key == keymapper.mapping[keymapper.LAND1]:
         g_key_press_value=keymapper.LAND1
         last_command = "Land"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         exit_flag = 0
 
     elif key == keymapper.mapping[keymapper.FORWARD]:
         g_key_press_value=keymapper.FORWARD
         last_command = "Forward"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         if fly:
             tello.move_forward(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.BACKWARD]:
         g_key_press_value=keymapper.BACKWARD
         last_command = "Backward"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         if fly:
             tello.move_back(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.LEFT]:
         g_key_press_value=keymapper.LEFT
         last_command = "Left"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         if fly:
             tello.move_left(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.RIGHT]:
         g_key_press_value=keymapper.RIGHT
         last_command = "Right"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         if fly:
             tello.move_right(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.CLOCKWISE]:
         g_key_press_value=keymapper.CLOCKWISE
         last_command = "Clockwise"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         if fly:
             tello.rotate_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.COUNTER_CLOCKWISE]:
         g_key_press_value=keymapper.COUNTER_CLOCKWISE
         last_command = "Counter Clockwise"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         if fly:
             tello.rotate_counter_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.UP]:
         g_key_press_value=keymapper.UP
         last_command = "Up"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         if fly:
             tello.move_up(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.DOWN]:
         g_key_press_value=keymapper.DOWN
         last_command = "Down"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         if fly:
             tello.move_down(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.LAND2]:
         g_key_press_value=keymapper.LAND2
         last_command = "Land"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         exit_flag = 0
 
     elif key == keymapper.mapping[keymapper.HOVER]:
         g_key_press_value=keymapper.HOVER
         last_command = "Hover"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         if fly:
             tello.send_rc_control(0, 0, 0, 0)
 
@@ -274,7 +277,7 @@ def _process_keyboard_commands(tello, fly):
         speed = speed + 5
         if speed > 100:
             speed = 100
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         tello.set_speed(speed)
 
     elif key == keymapper.mapping[keymapper.SPEED_DEC]:
@@ -283,12 +286,12 @@ def _process_keyboard_commands(tello, fly):
         speed = speed - 5
         if speed < 20:
             speed = 20
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
         tello.set_speed(speed)
 
     elif LOG_KEY_PRESS_VALUES and key != 255:
         last_command = None
-        _display_text(cmd_tello_image, f"Key Value: {key}", battery_left, speed, speed_x, speed_y, speed_z )
+        _display_text(cmd_tello_image, f"Key Value: {key}", battery_left, speed, speed_x, speed_y, speed_z, height )
         time.sleep(1)
 
     # LOGGER.debug(f"Exit Flag: {exit_flag}")
@@ -327,7 +330,7 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
     :type video_event: threading.Event
     :param fly: Flag used to indicate whether the drone should fly.  False is useful when you just want see the video stream.
     :type fly: bool
-    :param max_speed_limit: Maximum speed that the drone will send as a command.
+    :param max_speed_limit: Maximum speed_param that the drone will send as a command.
     :type max_speed_limit: int
     :return: None
     :rtype:
