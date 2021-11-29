@@ -161,19 +161,23 @@ def _process_keyboard_commands(tello, fly):
             else:
                 print("Could not ready file media/tello_drone_image2.png")
 
+    # update battery every 10 seconds
     if tello and time.time() - battery_update_timestamp > 10:
         battery_update_timestamp = time.time()
         battery_left = tello.get_battery()
-        speed = tello.query_speed()
-        speed_x = tello.get_speed_x()
-        speed_y = tello.get_speed_y()
-        speed_z = tello.get_speed_z()
-        height = tello.get_height()
 
+    # update other values every 2 seconds
     if time.time() - last_command_timestamp > 2:
         last_command_timestamp = time.time()
         last_command = ""
         g_key_press_value = None
+        if tello:
+            speed = tello.get_speed()
+            speed_x = tello.get_speed_x()
+            speed_y = tello.get_speed_y()
+            speed_z = tello.get_speed_z()
+            height = tello.get_height()
+            print(f"h: {height}")
 
     exit_flag = 1
     cmd_tello_image = tello_image.copy()
@@ -189,6 +193,10 @@ def _process_keyboard_commands(tello, fly):
 
     if key != 255 and LOG_KEY_PRESS_VALUES:
         LOGGER.debug(f"key: {key}")
+
+    # always save the numeric value of the key pressed in case it is
+    # a key the user script will act on
+    g_key_press_value = key
 
     if key == keymapper.mapping[keymapper.LAND1]:
         g_key_press_value=keymapper.LAND1

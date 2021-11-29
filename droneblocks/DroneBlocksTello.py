@@ -2,14 +2,14 @@ from djitellopy import Tello
 
 
 class DroneBlocksTello(Tello):
-    UP      = 'u'
-    LEFT    = 'l'
-    DOWN    = 'd'
-    RIGHT   = 'r'
+    UP = 'u'
+    LEFT = 'l'
+    DOWN = 'd'
+    RIGHT = 'r'
 
-    PURPLE  = 'p'
-    BLUE    = 'b'
-    RED     = 'r'
+    PURPLE = 'p'
+    BLUE = 'b'
+    RED = 'r'
 
     sad_image = "0000000000b00b0000000000000bb000000bb000000000000bbbbbb0b000000b"
     smile_image = "0000000000b00b0000000000000bb000b00bb00bb000000b0b0000b000bbbb00"
@@ -21,12 +21,13 @@ class DroneBlocksTello(Tello):
 
     def __init__(self):
         super().__init__()
+        self.last_speed_value = 0
 
     @classmethod
     def get_blank_display_matrix(cls):
         return "0000000000000000000000000000000000000000000000000000000000000000"
 
-    def _display_pattern(self, flattened_matrix:str ) -> str:
+    def _display_pattern(self, flattened_matrix: str) -> str:
         return self.send_command_with_return(f"EXT mled g {flattened_matrix}")
 
     def get_speed(self) -> int:
@@ -35,8 +36,14 @@ class DroneBlocksTello(Tello):
             int: 1-100
         """
         speed_value = self.send_read_command('speed?')
-        return int(float(speed_value))
+        print(f"get_speed: {speed_value}")
+        try:
+            speed_value = int(float(speed_value))
+            self.last_speed_value = speed_value
+        except:
+            speed_value = self.last_speed_value
 
+        return speed_value
 
     def pulse_top_led(self, r: int, g: int, b: int, freq: float = 2.5) -> str:
         """
@@ -61,18 +68,18 @@ class DroneBlocksTello(Tello):
                           freq: float = 2.5) -> str:
         return self.send_command_with_return(f"EXT led bl {freq} {r1} {g1} {b1} {r2} {g2} {b2}")
 
-    def change_image_color(self, image_string:str, from_color:str, to_color:str) -> str:
+    def change_image_color(self, image_string: str, from_color: str, to_color: str) -> str:
         new_str = image_string.replace(from_color, to_color)
         return new_str
 
-    def display_image(self, display_string:str) -> str:
+    def display_image(self, display_string: str) -> str:
         return self._display_pattern(display_string)
 
     def clear_display(self) -> str:
         display = DroneBlocksTello.get_blank_display_matrix()
         return self._display_pattern(display)
 
-    def set_display_brightness(self, level:int) -> str:
+    def set_display_brightness(self, level: int) -> str:
         if 0 <= level <= 255:
             return self.send_command_with_return(f"EXT mled sl {level}")
         return 'Invalid level value'
@@ -81,49 +88,49 @@ class DroneBlocksTello(Tello):
         self.clear_display()
         self.set_top_led(r=0, g=0, b=0)
 
-    def display_heart(self, display_color:str=PURPLE) -> str:
+    def display_heart(self, display_color: str = PURPLE) -> str:
         return self.send_command_with_return(f"EXT mled s {display_color} heart")
 
-    def display_character(self, single_character:str, display_color:str=PURPLE) -> str:
+    def display_character(self, single_character: str, display_color: str = PURPLE) -> str:
         return self.send_command_with_return(f"EXT mled s {display_color} {single_character}")
 
-    def display_smile(self, display_color:str=PURPLE) -> str:
+    def display_smile(self, display_color: str = PURPLE) -> str:
         smile = self.change_image_color(DroneBlocksTello.smile_image, DroneBlocksTello.BLUE, display_color)
         return self._display_pattern(smile)
 
-    def display_sad(self, display_color:str=PURPLE) -> str:
+    def display_sad(self, display_color: str = PURPLE) -> str:
         sad = self.change_image_color(DroneBlocksTello.sad_image, DroneBlocksTello.BLUE, display_color)
         return self._display_pattern(sad)
 
-    def display_up_arrow(self, display_color:str=BLUE) -> str:
+    def display_up_arrow(self, display_color: str = BLUE) -> str:
         up = self.change_image_color(DroneBlocksTello.up_arrow_image, DroneBlocksTello.BLUE, display_color)
         return self._display_pattern(up)
 
-    def display_down_arrow(self, display_color:str=BLUE) -> str:
+    def display_down_arrow(self, display_color: str = BLUE) -> str:
         down = self.change_image_color(DroneBlocksTello.down_arrow_image, DroneBlocksTello.BLUE, display_color)
         return self._display_pattern(down)
 
-    def display_left_arrow(self, display_color:str=BLUE) -> str:
+    def display_left_arrow(self, display_color: str = BLUE) -> str:
         left = self.change_image_color(DroneBlocksTello.left_arrow_image, DroneBlocksTello.BLUE, display_color)
         return self._display_pattern(left)
 
-    def display_right_arrow(self, display_color:str=BLUE) -> str:
+    def display_right_arrow(self, display_color: str = BLUE) -> str:
         right = self.change_image_color(DroneBlocksTello.right_arrow_image, DroneBlocksTello.BLUE, display_color)
         return self._display_pattern(right)
 
-    def display_question_mark(self, display_color:str=BLUE) -> str:
+    def display_question_mark(self, display_color: str = BLUE) -> str:
         question = self.change_image_color(DroneBlocksTello.question_mark, DroneBlocksTello.BLUE, display_color)
         return self._display_pattern(question)
 
-    def scroll_image(self, image_string:str,  scroll_dir:str, rate:float=2.5)->str:
+    def scroll_image(self, image_string: str, scroll_dir: str, rate: float = 2.5) -> str:
         return self.send_command_with_return(f"EXT mled {scroll_dir} g {rate} {image_string}")
 
-    def scroll_string(self, message:str,  scroll_dir:str, display_color:str=PURPLE, rate:float=2.5)->str:
+    def scroll_string(self, message: str, scroll_dir: str = LEFT, display_color: str = PURPLE,
+                      rate: float = 2.5) -> str:
         if len(message) > 70:
             message = message[0:70]
 
         return self.send_command_with_return(f"EXT mled {scroll_dir} {display_color} {rate} {message}")
-
 
 
 if __name__ == '__main__':
