@@ -14,6 +14,7 @@ import traceback
 import pkgutil
 from droneblocks import tello_keyboard_mapper as keymapper
 from droneblocksutils.exceptions import LandException
+from droneblocks.uielements import RectButton
 
 FORMAT = '%(asctime)-15s %(levelname)-10s %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -40,6 +41,8 @@ IMAGE_HEIGHT = None
 TELLO_VIDEO_WINDOW_NAME = "Tello Video"
 ORIGINAL_VIDEO_WINDOW_NAME = "Original"
 KEYBOARD_CMD_WINDOW_NAME = "Keyboard Cmds"
+
+ui_elements=[]
 
 # True - write to the console the key value that was pressed
 # False - do not write to the console
@@ -87,11 +90,59 @@ def shutdown_gracefully():
 
 tello_image = None
 
+def _up_button_handler():
+    print("up")
+    if tello:
+        tello.move_up(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+
+def _down_button_handler():
+    print("down")
+    if tello:
+        tello.move_down(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+
+def _left_button_handler():
+    print("left")
+    if tello:
+        tello.move_left(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+def _right_button_handler():
+    print("right")
+    if tello:
+        tello.move_right(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+def _fwd_button_handler():
+    print("fwd")
+    if tello:
+        tello.move_forward(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+def _bkwd_button_handler():
+    print("bkwd")
+    if tello:
+        tello.move_back(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+def _cw_button_handler():
+    print("cw")
+    if tello:
+        tello.rotate_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
+def _ccw_button_handler():
+    print("ccw")
+    if tello:
+        tello.rotate_counter_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
+def _land_button_handler():
+    global user_script_requested_land
+    print("land")
+    if tello:
+        tello.land()
+        user_script_requested_land = True
+
+
+def _mouse_events(event, x, y,
+                 flags, param):
+    for ui_element in ui_elements:
+        ui_element.process_point(x, y, tello_image, event)
+        ui_element.draw(tello_image)
+
 
 def _display_text(image, text, bat_left, speed_param, speed_x_param, speed_y_param, speed_z_param, height_param):
     key = -666 # set to a non-existent key
     if image is not None:
-        cv2.putText(image, text, (50, int(image.shape[0] * 0.90)), cv2.FONT_HERSHEY_SIMPLEX, 1,
+        cv2.putText(image, text, (90, int(image.shape[0] * 0.95)), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (255, 0, 0), 2, cv2.LINE_AA)  #
 
         cv2.putText(image, f"Battery: {bat_left}%", (int(image.shape[1] * 0.55), 40), cv2.FONT_HERSHEY_SIMPLEX, 1,
@@ -163,6 +214,63 @@ def _process_keyboard_commands(tello, fly):
             else:
                 print("Could not ready file media/tello_drone_image2.png")
 
+        # add buttons to Tello Command Window
+        btn = RectButton(int(tello_image.shape[1] * 0.01), int(tello_image.shape[0] * .01), "Up", (255, 0, 0), (0, 0, 255),
+                             (64, 64, 64))
+        btn.set_click_callback(_up_button_handler)
+        btn.draw(tello_image)
+        ui_elements.append(btn)
+
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Down", (255, 0, 0), (0, 0, 255),
+                             (64, 64, 64))
+        btn.set_click_callback(_down_button_handler)
+        btn.draw(tello_image)
+        ui_elements.append(btn)
+
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Left", (255, 0, 0), (0, 0, 255),
+                             (64, 64, 64))
+        btn.set_click_callback(_left_button_handler)
+        btn.draw(tello_image)
+        ui_elements.append(btn)
+
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Right", (255, 0, 0), (0, 0, 255),
+                             (64, 64, 64))
+        btn.set_click_callback(_right_button_handler)
+        btn.draw(tello_image)
+        ui_elements.append(btn)
+
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Fwd", (255, 0, 0), (0, 0, 255),
+                             (64, 64, 64))
+        btn.set_click_callback(_fwd_button_handler)
+        btn.draw(tello_image)
+        ui_elements.append(btn)
+
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Bwd", (255, 0, 0), (0, 0, 255),
+                             (64, 64, 64))
+        btn.set_click_callback(_bkwd_button_handler)
+        btn.draw(tello_image)
+        ui_elements.append(btn)
+
+
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "CW", (255, 0, 0), (0, 0, 255),
+                             (64, 64, 64))
+        btn.set_click_callback(_cw_button_handler)
+        btn.draw(tello_image)
+        ui_elements.append(btn)
+
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "CCW", (255, 0, 0), (0, 0, 255),
+                             (64, 64, 64))
+        btn.set_click_callback(_ccw_button_handler)
+        btn.draw(tello_image)
+        ui_elements.append(btn)
+
+        btn = RectButton(int(tello_image.shape[1] * 0.8), int(tello_image.shape[0] * .85), "LAND", (255, 0, 0), (0, 0, 255),
+                             (64, 64, 64))
+        btn.set_click_callback(_land_button_handler)
+        btn.draw(tello_image)
+        ui_elements.append(btn)
+
+
     # update battery every 10 seconds
     if tello and time.time() - battery_update_timestamp > 10:
         battery_update_timestamp = time.time()
@@ -181,6 +289,9 @@ def _process_keyboard_commands(tello, fly):
             height = tello.get_height()
 
     exit_flag = 1
+    if tello_image is None:
+        return exit_flag
+
     cmd_tello_image = tello_image.copy()
     key = _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
 
@@ -523,6 +634,7 @@ def main():
         cv2.namedWindow(TELLO_VIDEO_WINDOW_NAME, cv2.WINDOW_NORMAL)
         # cv2.resizeWindow(TELLO_VIDEO_WINDOW_NAME, 600, 600)
         cv2.namedWindow(KEYBOARD_CMD_WINDOW_NAME, cv2.WINDOW_NORMAL)
+        cv2.setMouseCallback(KEYBOARD_CMD_WINDOW_NAME, _mouse_events)
 
         if show_original_frame:
             cv2.namedWindow(ORIGINAL_VIDEO_WINDOW_NAME, cv2.WINDOW_NORMAL)
@@ -584,8 +696,8 @@ def main():
     finally:
         LOGGER.debug("Complete...")
 
-        cv2.destroyWindow("Tello Video")
-        cv2.destroyWindow("Keyboard Cmds")
+        cv2.destroyWindow(TELLO_VIDEO_WINDOW_NAME)
+        cv2.destroyWindow(KEYBOARD_CMD_WINDOW_NAME)
         cv2.destroyAllWindows()
         shutdown_gracefully()
 

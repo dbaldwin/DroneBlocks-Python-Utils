@@ -17,8 +17,8 @@ def init(tello, fly_flag=False):
 
     # Create a key mapping for the Apple Keypad
     new_key_map = {
-        kmap.FORWARD: 56,
-        kmap.BACKWARD: 50,
+        kmap.FORWARD: 56,  #8
+        kmap.BACKWARD: 50, #2
         kmap.HOVER: 53,
         kmap.LEFT: 52,
         kmap.RIGHT: 54,
