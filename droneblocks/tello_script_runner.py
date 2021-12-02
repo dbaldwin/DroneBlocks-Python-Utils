@@ -501,14 +501,14 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
             time.sleep(2)
 
         params = {}
+        params['fly_flag'] = fly
         while not stop_event.isSet():
             frame = _get_video_frame(frame_read, tello_video_sim)
+            params['last_key_pressed'] = g_key_press_value
 
             if frame is None:
                 # LOGGER.debug("Failed to read video frame")
                 if handler_method:
-                    params['fly_flag']=fly
-                    params['last_key_pressed']=g_key_press_value
                     handler_method(tello, frame, params)
                 # else:
                 #     # stop let keyboard commands take over
@@ -519,14 +519,9 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
             original_frame = frame.copy()
 
             if handler_method:
-                rtn_frame = handler_method(tello, frame, fly)
+                rtn_frame = handler_method(tello, frame, params)
                 if rtn_frame is not None:
                     frame = rtn_frame
-
-            # else:
-            #     # stop let keyboard commands take over
-            #     if fly:
-            #         tello.send_rc_control(0, 0, 0, 0)
 
             # send frame to other processes
             if video_queue and video_event.is_set():
@@ -654,7 +649,16 @@ def main():
         p1.setDaemon(True)
         p1.start()
 
+        # wait one second for the process thread to kick in
+        time.sleep(1)
+        frame_read = None
         while True:
+            if frame_read is None and tello is not None:
+                try:
+                    frame_read = tello.get_frame_read()
+                except:
+                    frame_read = None
+
             key_status = _exception_safe_process_keyboard_commands(tello, fly)
             if key_status == 0 or user_script_requested_land == True:
                 stop_event.set()
@@ -673,6 +677,8 @@ def main():
             try:
                 # LOGGER.debug(f"Q size: {video_queue.qsize()}")
                 if video_queue is not None:
+                    # frames[0] - frame returned from the script handler
+                    # frames[1] - original frame read from tello/webcam
                     frames = video_queue.get(block=False)
                     frame = frames[0]
                 else:
@@ -682,13 +688,30 @@ def main():
                 frame = None
                 frames = []
 
+            if frame_read is not None and show_original_frame:
+                # then we have created a frame reader
+                # and the user wants to see the original video feed
+                # so try to read a frame from the tello and just show that
+                try:
+                    orig_frame = _get_video_frame(frame_read, tello_video_sim)
+                    cv2.imshow(ORIGINAL_VIDEO_WINDOW_NAME, orig_frame)
+                    cv2.waitKey(1)
+                except:
+                    pass
+
             # check for video feed
             if display_video and frame is not None:
                 try:
                     # display the frame to the screen
                     cv2.imshow(TELLO_VIDEO_WINDOW_NAME, frame)
-                    if show_original_frame:
-                        cv2.imshow(ORIGINAL_VIDEO_WINDOW_NAME, frames[1])
+                    # frames[1] was the frame before sending to user handler
+                    # but instead of showing this frame, I am going to show the
+                    # realtime video feed from the tello above.
+                    # the only time I can think this might matter is if the user scripts
+                    # takes a really long time to run, and the frame that the user script
+                    # updates is really different than the current frame.
+                    # if show_original_frame:
+                    #     cv2.imshow(ORIGINAL_VIDEO_WINDOW_NAME, frames[1])
                     cv2.waitKey(1)
                 except Exception as exc:
                     LOGGER.error(f"Display Queue Error: {exc}")
