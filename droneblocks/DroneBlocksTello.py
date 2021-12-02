@@ -36,7 +36,6 @@ class DroneBlocksTello(Tello):
             int: 1-100
         """
         speed_value = self.send_read_command('speed?')
-        print(f"get_speed: {speed_value}")
         try:
             speed_value = int(float(speed_value))
             self.last_speed_value = speed_value

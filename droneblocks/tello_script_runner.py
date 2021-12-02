@@ -13,6 +13,7 @@ import queue
 import traceback
 import pkgutil
 from droneblocks import tello_keyboard_mapper as keymapper
+from droneblocksutils.exceptions import LandException
 
 FORMAT = '%(asctime)-15s %(levelname)-10s %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -20,6 +21,7 @@ LOGGER = logging.getLogger()
 
 tello = None
 local_video_stream = None
+user_script_requested_land = False
 
 # maximum number of
 MAX_VIDEO_Q_DEPTH = 10
@@ -177,7 +179,6 @@ def _process_keyboard_commands(tello, fly):
             speed_y = tello.get_speed_y()
             speed_z = tello.get_speed_z()
             height = tello.get_height()
-            print(f"h: {height}")
 
     exit_flag = 1
     cmd_tello_image = tello_image.copy()
@@ -343,7 +344,7 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
     :return: None
     :rtype:
     """
-    global tello, local_video_stream, speed
+    global tello, local_video_stream, speed, user_script_requested_land
     last_show_video_queue_put_time = 0
     handler_method = None
     stop_method = None
@@ -425,7 +426,9 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
                 except:
                     pass
 
-
+    except LandException:
+        LOGGER.debug(f"User script requested landing")
+        user_script_requested_land = True
     except Exception as exc:
         LOGGER.error(f"Exiting Tello Process with exception: {exc}")
         traceback.print_exc()
@@ -541,7 +544,7 @@ def main():
 
         while True:
             key_status = _exception_safe_process_keyboard_commands(tello, fly)
-            if key_status == 0:
+            if key_status == 0 or user_script_requested_land == True:
                 stop_event.set()
                 ready_to_show_video_event.clear()
                 # wait up to 5 seconds for the handler thread to exit
