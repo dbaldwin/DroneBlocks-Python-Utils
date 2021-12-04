@@ -44,7 +44,7 @@ IMAGE_WIDTH = 600
 IMAGE_HEIGHT = None
 
 TELLO_VIDEO_WINDOW_NAME = "Tello Video"
-ORIGINAL_VIDEO_WINDOW_NAME = "Original"
+ORIGINAL_VIDEO_WINDOW_NAME = "Raw Tello Video"
 KEYBOARD_CMD_WINDOW_NAME = "Keyboard Cmds"
 
 ui_elements=[]
@@ -471,11 +471,11 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
     stop_method = None
 
     try:
-        tello = DroneBlocksTello()
-        rtn = tello.connect()
-        if fly or (not tello_video_sim and display_tello_video):
-            LOGGER.debug(f"Connect Return: {rtn}")
-            speed = tello.get_speed()
+        # tello = DroneBlocksTello()
+        # rtn = tello.connect()
+        # if fly or (not tello_video_sim and display_tello_video):
+        #     LOGGER.debug(f"Connect Return: {rtn}")
+        #     speed = tello.get_speed()
 
         if handler_file:
             handler_file = handler_file.replace(".py", "")
@@ -498,7 +498,7 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
 
         frame_read = None
         if tello and video_queue:
-            tello.streamon()
+            # tello.streamon()
             frame_read = tello.get_frame_read()
 
         if fly:
@@ -575,7 +575,8 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
 
 
 def main():
-    global LOG_KEY_PRESS_VALUES, DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS, DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS
+    global LOG_KEY_PRESS_VALUES, DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS, DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS,speed
+    global tello
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -670,20 +671,36 @@ def main():
                 cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200, 100)
             cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 200+IMAGE_WIDTH, 100)
 
+        # -----------------------  Initialize the Tello ----------------------
+        tello = DroneBlocksTello()
+        tello.connect()
+        speed = tello.get_speed()
+
+        # If the user wants to see the Tello video from the handler
+        # or the raw video from the Tello AND we are not simulating
+        # the video with the webcam, then we can turn the video
+        # streamon
+        if (display_video or show_original_frame) and not tello_video_sim:
+            tello.streamon()
+
+        # -----------------------  DONE Initialize the Tello ----------------------
+
+        # ---------------------------- Initialize background processing thread and script runner --------
         stop_event = threading.Event()
         ready_to_show_video_event = threading.Event()
         p1 = threading.Thread(target=process_tello_video_feed,
                               args=(
-                              handler_file, video_queue, stop_event, ready_to_show_video_event, fly, tello_video_sim,
-                              display_video,))
+                                handler_file, video_queue, stop_event, ready_to_show_video_event, fly, tello_video_sim,
+                                display_video,))
         p1.setDaemon(True)
         p1.start()
+        # ---------------------------- DONE Initialize background processing thread and script runner --------
 
         # wait one second for the process thread to kick in
         time.sleep(1)
         frame_read = None
         while True:
-            if frame_read is None and tello is not None and display_video:
+            if frame_read is None and tello is not None and show_original_frame:
                 try:
                     frame_read = tello.get_frame_read()
                 except:
