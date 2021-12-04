@@ -43,7 +43,7 @@ show_video_per_second = 0.3
 IMAGE_WIDTH = 600
 IMAGE_HEIGHT = None
 
-TELLO_VIDEO_WINDOW_NAME = "Tello Video"
+TELLO_VIDEO_WINDOW_NAME = "User Tello Video"
 ORIGINAL_VIDEO_WINDOW_NAME = "Raw Tello Video"
 KEYBOARD_CMD_WINDOW_NAME = "Keyboard Cmds"
 
@@ -137,9 +137,9 @@ def _ccw_button_handler():
 def _land_button_handler():
     global user_script_requested_land
     print("land")
-    if tello:
+    if tello and tello.is_flying:
         tello.land()
-        user_script_requested_land = True
+    user_script_requested_land = True
 
 
 def _mouse_events(event, x, y,
