@@ -20,8 +20,13 @@ FORMAT = '%(asctime)-15s %(levelname)-10s %(message)s'
 logging.basicConfig(format=FORMAT)
 LOGGER = logging.getLogger()
 
+# Reference to the global Tello instance
 tello = None
+
+# If video sim is selected, this is the WebCam video stream
 local_video_stream = None
+
+# Global flag used to communiate is the user_script requested to land
 user_script_requested_land = False
 
 # maximum number of
@@ -75,17 +80,22 @@ def signal_handler(sig, frame):
 
 
 def shutdown_gracefully():
+    print("Tello Script Runner Shutdown.......")
     if tello:
         try:
+            print("Stop all Tello operations")
             tello.end()
         except:
             pass
 
     if local_video_stream:
         try:
+            print("Stop local webcam")
             local_video_stream.stop()
         except:
             pass
+
+    print("Tello Script Runner Shutdown.......Complete")
 
 
 tello_image = None
@@ -503,19 +513,22 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
         params = {}
         params['fly_flag'] = fly
         while not stop_event.isSet():
-            frame = _get_video_frame(frame_read, tello_video_sim)
+            if display_tello_video:
+                frame = _get_video_frame(frame_read, tello_video_sim)
+            else:
+                frame = None
             params['last_key_pressed'] = g_key_press_value
 
+            # if we have no frame, just call handler_method and re-loop
+            # no need to process video frames
             if frame is None:
                 # LOGGER.debug("Failed to read video frame")
                 if handler_method:
                     handler_method(tello, frame, params)
-                # else:
-                #     # stop let keyboard commands take over
-                #     if fly:
-                #         tello.send_rc_control(0, 0, 0, 0)
                 continue
 
+            # if you get here, then you had a video frame
+            # to process
             original_frame = frame.copy()
 
             if handler_method:
@@ -535,6 +548,9 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
     except LandException:
         LOGGER.debug(f"User script requested landing")
         user_script_requested_land = True
+    except ModuleNotFoundError as exc:
+        LOGGER.error(f"Could not find specified handler script: {exc.msg}")
+
     except Exception as exc:
         LOGGER.error(f"Exiting Tello Process with exception: {exc}")
         traceback.print_exc()
@@ -542,17 +558,18 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
         # then the user has requested that we land and we should not process this thread
         # any longer.
         # to be safe... stop all movement
-        if fly:
-            tello.send_rc_control(0, 0, 0, 0)
+        if handler_method is not None:
+            if fly:
+                tello.send_rc_control(0, 0, 0, 0)
 
-        if stop_method:
-            params = {}
-            params['fly_flag'] = fly
-            params['last_key_pressed'] = g_key_press_value
+            if stop_method:
+                params = {}
+                params['fly_flag'] = fly
+                params['last_key_pressed'] = g_key_press_value
 
-            stop_method(tello, params)
+                stop_method(tello, params)
 
-        stop_event.clear()
+            stop_event.clear()
 
     LOGGER.info("Leaving User Script Processing Thread.....")
 
@@ -604,11 +621,21 @@ def main():
     LOGGER.debug(f"Fly: {fly}")
     display_video = args['display_video']
     handler_file = args['handler']
+    if handler_file:
+        handler_file = handler_file.replace(".py", "")
+        handler_module = importlib.import_module(handler_file)
+        if handler_module is None:
+            raise f"Could not locate handler file: {handler_file}"
+
     tello_video_sim = args['tello_video_sim']
 
     # if the user selected tello_video_sim, force the display video flag
+    # but also do not show the raw/original Tello video, because we dont have
+    # that in simulator mode
     if tello_video_sim:
         display_video = True
+        show_original_frame = False
+
 
     # display unknown keyboard key values in Cmd window and in console
     if args['display_unknown_keyvalue']:
@@ -626,18 +653,21 @@ def main():
         TELLO_LOGGER = logging.getLogger('djitellopy')
         TELLO_LOGGER.setLevel(logging.ERROR)
 
-        cv2.namedWindow(TELLO_VIDEO_WINDOW_NAME, cv2.WINDOW_NORMAL)
-        # cv2.resizeWindow(TELLO_VIDEO_WINDOW_NAME, 600, 600)
         cv2.namedWindow(KEYBOARD_CMD_WINDOW_NAME, cv2.WINDOW_NORMAL)
         cv2.setMouseCallback(KEYBOARD_CMD_WINDOW_NAME, _mouse_events)
 
+        if display_video:
+            cv2.namedWindow(TELLO_VIDEO_WINDOW_NAME, cv2.WINDOW_NORMAL)
+
         if show_original_frame:
             cv2.namedWindow(ORIGINAL_VIDEO_WINDOW_NAME, cv2.WINDOW_NORMAL)
-            cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 450, 410)
-            cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200+IMAGE_WIDTH, 100)
             cv2.moveWindow(ORIGINAL_VIDEO_WINDOW_NAME, 200, 100)
+            cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 450, 410)
+            if display_video:
+                cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200+IMAGE_WIDTH, 100)
         else:
-            cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200, 100)
+            if display_video:
+                cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200, 100)
             cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 200+IMAGE_WIDTH, 100)
 
         stop_event = threading.Event()
@@ -653,7 +683,7 @@ def main():
         time.sleep(1)
         frame_read = None
         while True:
-            if frame_read is None and tello is not None:
+            if frame_read is None and tello is not None and display_video:
                 try:
                     frame_read = tello.get_frame_read()
                 except:
@@ -718,12 +748,16 @@ def main():
 
     finally:
         LOGGER.debug("Complete...")
-
-        cv2.destroyWindow(TELLO_VIDEO_WINDOW_NAME)
+        if display_video:
+            cv2.destroyWindow(TELLO_VIDEO_WINDOW_NAME)
         cv2.destroyWindow(KEYBOARD_CMD_WINDOW_NAME)
         cv2.destroyAllWindows()
         shutdown_gracefully()
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as exc:
+        print("An error occurred while trying to execute the tello script runner")
+        print(f"Exception: {exc}")
