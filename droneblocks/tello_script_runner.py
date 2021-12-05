@@ -546,7 +546,7 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
                     pass
 
     except LandException:
-        LOGGER.debug(f"User script requested landing")
+        print(f"User script requested landing")
         user_script_requested_land = True
     except ModuleNotFoundError as exc:
         LOGGER.error(f"Could not find specified handler script: {exc.msg}")
@@ -567,7 +567,12 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
                 params['fly_flag'] = fly
                 params['last_key_pressed'] = g_key_press_value
 
-                stop_method(tello, params)
+                try:
+                    stop_method(tello, params)
+                except:
+                    # if the stop method throws an exception, make sure the rest of the
+                    # tello shutdown still continues
+                    pass
 
             stop_event.clear()
 
