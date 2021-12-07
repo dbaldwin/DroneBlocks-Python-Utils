@@ -1,15 +1,18 @@
 import time
 from droneblocks.DroneBlocksTello import DroneBlocksTello
-
+import logging
 
 class DroneBlocksContextManager():
 
-    def __init__(self, motor_on=False):
+    def __init__(self, motor_on=False, log_level=logging.ERROR):
         self.motor_on = motor_on
         self.db_tello = None
+        self.log_level = log_level
 
     def __enter__(self):
         self.db_tello = DroneBlocksTello()
+        self.db_tello.LOGGER.setLevel(self.log_level)
+
         self.db_tello.connect()
         if self.motor_on:
             self.db_tello.turn_motor_on()
