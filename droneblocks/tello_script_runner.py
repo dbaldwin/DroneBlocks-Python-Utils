@@ -15,6 +15,7 @@ import pkgutil
 from droneblocks import tello_keyboard_mapper as keymapper
 from droneblocksutils.exceptions import LandException
 from droneblocks.uielements import RectButton
+from droneblocks.tello_web import web_main
 
 FORMAT = '%(asctime)-15s %(levelname)-10s %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -47,7 +48,7 @@ TELLO_VIDEO_WINDOW_NAME = "User Tello Video"
 ORIGINAL_VIDEO_WINDOW_NAME = "Raw Tello Video"
 KEYBOARD_CMD_WINDOW_NAME = "Keyboard Cmds"
 
-ui_elements=[]
+ui_elements = []
 
 # True - write to the console the key value that was pressed
 # False - do not write to the console
@@ -56,7 +57,7 @@ LOG_KEY_PRESS_VALUES = False
 
 # Global value holding the last key pressed.
 # value will be key from the tello_keyboard_mapper.py file
-g_key_press_value=None
+g_key_press_value = None
 
 # Global state of Tello, last read or set values
 battery_update_timestamp = 0
@@ -72,6 +73,7 @@ height = 0
 DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS = 30
 DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS = 90
 
+
 # function to handle keyboard interrupt
 def signal_handler(sig, frame):
     shutdown_gracefully()
@@ -85,6 +87,7 @@ def shutdown_gracefully():
         try:
             print("Stop all Tello operations")
             tello.end()
+            tello.turn_motor_off()
         except:
             pass
 
@@ -100,57 +103,90 @@ def shutdown_gracefully():
 
 tello_image = None
 
+
 def _up_button_handler():
-    print("up")
     if tello:
-        tello.move_up(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        try:
+            tello.move_up(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        except:
+            LOGGER.warning("Could not issue UP command")
+
 
 def _down_button_handler():
-    print("down")
     if tello:
-        tello.move_down(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        try:
+            tello.move_down(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        except:
+            LOGGER.warning("Could not issue DOWN command")
+
 
 def _left_button_handler():
-    print("left")
     if tello:
-        tello.move_left(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        try:
+            tello.move_left(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        except:
+            LOGGER.warning("Could not issue LEFT command")
+
+
 def _right_button_handler():
-    print("right")
     if tello:
-        tello.move_right(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        try:
+            tello.move_right(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        except:
+            LOGGER.warning("Could not issue RIGHT command")
+
+
 def _fwd_button_handler():
-    print("fwd")
     if tello:
-        tello.move_forward(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        try:
+            tello.move_forward(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        except:
+            LOGGER.warning("Could not issue FORWARD command")
+
+
 def _bkwd_button_handler():
-    print("bkwd")
     if tello:
-        tello.move_back(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        try:
+            tello.move_back(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
+        except:
+            LOGGER.warning("Could not issue BACKWARD command")
+
+
 def _cw_button_handler():
-    print("cw")
     if tello:
-        tello.rotate_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
+        try:
+            tello.rotate_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
+        except:
+            LOGGER.warning("Could not issue CLOCKWISE command")
+
+
 def _ccw_button_handler():
-    print("ccw")
     if tello:
-        tello.rotate_counter_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
+        try:
+            tello.rotate_counter_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
+        except:
+            LOGGER.warning("Could not issue COUNTER-CLOCKWISE command")
+
+
 def _land_button_handler():
     global user_script_requested_land
-    print("land")
     if tello and tello.is_flying:
-        tello.land()
+        try:
+            tello.land()
+        except:
+            LOGGER.warning("Could not issue land command")
     user_script_requested_land = True
 
 
 def _mouse_events(event, x, y,
-                 flags, param):
+                  flags, param):
     for ui_element in ui_elements:
         ui_element.process_point(x, y, tello_image, event)
         ui_element.draw(tello_image)
 
 
 def _display_text(image, text, bat_left, speed_param, speed_x_param, speed_y_param, speed_z_param, height_param):
-    key = -666 # set to a non-existent key
+    key = -666  # set to a non-existent key
     if image is not None:
         cv2.putText(image, text, (90, int(image.shape[0] * 0.95)), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (255, 0, 0), 2, cv2.LINE_AA)  #
@@ -172,7 +208,6 @@ def _display_text(image, text, bat_left, speed_param, speed_x_param, speed_y_par
 
         cv2.putText(image, f"H: {height_param}", (int(image.shape[1] * 0.75), 240), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (255, 0, 0), 2, cv2.LINE_AA)
-
 
         cv2.imshow(KEYBOARD_CMD_WINDOW_NAME, image)
         key = cv2.waitKey(150) & 0xff
@@ -225,61 +260,61 @@ def _process_keyboard_commands(tello, fly):
                 print("Could not ready file media/tello_drone_image2.png")
 
         # add buttons to Tello Command Window
-        btn = RectButton(int(tello_image.shape[1] * 0.01), int(tello_image.shape[0] * .01), "Up", (255, 0, 0), (0, 0, 255),
-                             (64, 64, 64))
+        btn = RectButton(int(tello_image.shape[1] * 0.01), int(tello_image.shape[0] * .01), "Up", (255, 0, 0),
+                         (0, 0, 255),
+                         (64, 64, 64))
         btn.set_click_callback(_up_button_handler)
         btn.draw(tello_image)
         ui_elements.append(btn)
 
-        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Down", (255, 0, 0), (0, 0, 255),
-                             (64, 64, 64))
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y + btn.height + 5), "Down", (255, 0, 0), (0, 0, 255),
+                         (64, 64, 64))
         btn.set_click_callback(_down_button_handler)
         btn.draw(tello_image)
         ui_elements.append(btn)
 
-        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Left", (255, 0, 0), (0, 0, 255),
-                             (64, 64, 64))
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y + btn.height + 5), "Left", (255, 0, 0), (0, 0, 255),
+                         (64, 64, 64))
         btn.set_click_callback(_left_button_handler)
         btn.draw(tello_image)
         ui_elements.append(btn)
 
-        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Right", (255, 0, 0), (0, 0, 255),
-                             (64, 64, 64))
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y + btn.height + 5), "Right", (255, 0, 0), (0, 0, 255),
+                         (64, 64, 64))
         btn.set_click_callback(_right_button_handler)
         btn.draw(tello_image)
         ui_elements.append(btn)
 
-        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Fwd", (255, 0, 0), (0, 0, 255),
-                             (64, 64, 64))
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y + btn.height + 5), "Fwd", (255, 0, 0), (0, 0, 255),
+                         (64, 64, 64))
         btn.set_click_callback(_fwd_button_handler)
         btn.draw(tello_image)
         ui_elements.append(btn)
 
-        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "Bwd", (255, 0, 0), (0, 0, 255),
-                             (64, 64, 64))
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y + btn.height + 5), "Bwd", (255, 0, 0), (0, 0, 255),
+                         (64, 64, 64))
         btn.set_click_callback(_bkwd_button_handler)
         btn.draw(tello_image)
         ui_elements.append(btn)
 
-
-        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "CW", (255, 0, 0), (0, 0, 255),
-                             (64, 64, 64))
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y + btn.height + 5), "CW", (255, 0, 0), (0, 0, 255),
+                         (64, 64, 64))
         btn.set_click_callback(_cw_button_handler)
         btn.draw(tello_image)
         ui_elements.append(btn)
 
-        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y+btn.height+5), "CCW", (255, 0, 0), (0, 0, 255),
-                             (64, 64, 64))
+        btn = RectButton(int(btn.anchor_x), int(btn.anchor_y + btn.height + 5), "CCW", (255, 0, 0), (0, 0, 255),
+                         (64, 64, 64))
         btn.set_click_callback(_ccw_button_handler)
         btn.draw(tello_image)
         ui_elements.append(btn)
 
-        btn = RectButton(int(tello_image.shape[1] * 0.8), int(tello_image.shape[0] * .85), "LAND", (255, 0, 0), (0, 0, 255),
-                             (64, 64, 64))
+        btn = RectButton(int(tello_image.shape[1] * 0.8), int(tello_image.shape[0] * .85), "LAND", (255, 0, 0),
+                         (0, 0, 255),
+                         (64, 64, 64))
         btn.set_click_callback(_land_button_handler)
         btn.draw(tello_image)
         ui_elements.append(btn)
-
 
     # update battery every 10 seconds
     if tello and time.time() - battery_update_timestamp > 10:
@@ -303,7 +338,7 @@ def _process_keyboard_commands(tello, fly):
         return exit_flag
 
     cmd_tello_image = tello_image.copy()
-    key = _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+    key = _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
 
     # because getting keyboard input is a polling process, someone might
     # hold down a key to get the command to register. To avoid getting
@@ -321,107 +356,107 @@ def _process_keyboard_commands(tello, fly):
     g_key_press_value = key
 
     if key == keymapper.mapping[keymapper.LAND1]:
-        g_key_press_value=keymapper.LAND1
+        g_key_press_value = keymapper.LAND1
         last_command = "Land"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         exit_flag = 0
 
     elif key == keymapper.mapping[keymapper.FORWARD]:
-        g_key_press_value=keymapper.FORWARD
+        g_key_press_value = keymapper.FORWARD
         last_command = "Forward"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         if fly:
             tello.move_forward(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.BACKWARD]:
-        g_key_press_value=keymapper.BACKWARD
+        g_key_press_value = keymapper.BACKWARD
         last_command = "Backward"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         if fly:
             tello.move_back(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.LEFT]:
-        g_key_press_value=keymapper.LEFT
+        g_key_press_value = keymapper.LEFT
         last_command = "Left"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         if fly:
             tello.move_left(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.RIGHT]:
-        g_key_press_value=keymapper.RIGHT
+        g_key_press_value = keymapper.RIGHT
         last_command = "Right"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         if fly:
             tello.move_right(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.CLOCKWISE]:
-        g_key_press_value=keymapper.CLOCKWISE
+        g_key_press_value = keymapper.CLOCKWISE
         last_command = "Clockwise"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         if fly:
             tello.rotate_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.COUNTER_CLOCKWISE]:
-        g_key_press_value=keymapper.COUNTER_CLOCKWISE
+        g_key_press_value = keymapper.COUNTER_CLOCKWISE
         last_command = "Counter Clockwise"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         if fly:
             tello.rotate_counter_clockwise(DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.UP]:
-        g_key_press_value=keymapper.UP
+        g_key_press_value = keymapper.UP
         last_command = "Up"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         if fly:
             tello.move_up(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.DOWN]:
-        g_key_press_value=keymapper.DOWN
+        g_key_press_value = keymapper.DOWN
         last_command = "Down"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         if fly:
             tello.move_down(DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS)
 
     elif key == keymapper.mapping[keymapper.LAND2]:
-        g_key_press_value=keymapper.LAND2
+        g_key_press_value = keymapper.LAND2
         last_command = "Land"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         exit_flag = 0
 
     elif key == keymapper.mapping[keymapper.HOVER]:
-        g_key_press_value=keymapper.HOVER
+        g_key_press_value = keymapper.HOVER
         last_command = "Hover"
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         if fly:
             tello.send_rc_control(0, 0, 0, 0)
 
     elif key == keymapper.mapping[keymapper.EMERGENCY]:
-        g_key_press_value=keymapper.EMERGENCY
+        g_key_press_value = keymapper.EMERGENCY
         last_command = "Emergency"
         tello.emergency()
         exit_flag = 0  # stop processing the handler function but continue to fly and see video
 
     elif key == keymapper.mapping[keymapper.SPEED_INC]:
-        g_key_press_value=keymapper.SPEED_INC
+        g_key_press_value = keymapper.SPEED_INC
         last_command = "Increase Speed"
         speed = speed + 5
         if speed > 100:
             speed = 100
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         tello.set_speed(speed)
 
     elif key == keymapper.mapping[keymapper.SPEED_DEC]:
-        g_key_press_value=keymapper.SPEED_DEC
+        g_key_press_value = keymapper.SPEED_DEC
         last_command = "Decrease Speed"
         speed = speed - 5
         if speed < 20:
             speed = 20
-        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, last_command, battery_left, speed, speed_x, speed_y, speed_z, height)
         tello.set_speed(speed)
 
     elif LOG_KEY_PRESS_VALUES and key != 255:
         last_command = None
-        _display_text(cmd_tello_image, f"Key Value: {key}", battery_left, speed, speed_x, speed_y, speed_z, height )
+        _display_text(cmd_tello_image, f"Key Value: {key}", battery_left, speed, speed_x, speed_y, speed_z, height)
         time.sleep(1)
 
     # LOGGER.debug(f"Exit Flag: {exit_flag}")
@@ -429,6 +464,7 @@ def _process_keyboard_commands(tello, fly):
 
 
 def _get_video_frame(frame_read, vid_sim):
+    global IMAGE_HEIGHT
     f = None
     try:
         if frame_read:
@@ -438,6 +474,7 @@ def _get_video_frame(frame_read, vid_sim):
 
         if f is not None:
             f = imutils.resize(f, width=IMAGE_WIDTH)
+            IMAGE_HEIGHT = f.shape[0]
 
     except Exception as exc:
         LOGGER.error("Exception getting video frame")
@@ -471,12 +508,6 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
     stop_method = None
 
     try:
-        # tello = DroneBlocksTello()
-        # rtn = tello.connect()
-        # if fly or (not tello_video_sim and display_tello_video):
-        #     LOGGER.debug(f"Connect Return: {rtn}")
-        #     speed = tello.get_speed()
-
         if handler_file:
             handler_file = handler_file.replace(".py", "")
             handler_module = importlib.import_module(handler_file)
@@ -493,7 +524,7 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
 
             new_key_map = init_method(tello, params)
             if new_key_map is not None:
-                for k,v in new_key_map.items():
+                for k, v in new_key_map.items():
                     keymapper.mapping[k] = v
 
         frame_read = None
@@ -574,13 +605,11 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
                     # tello shutdown still continues
                     pass
 
-            stop_event.clear()
-
     LOGGER.info("Leaving User Script Processing Thread.....")
 
 
 def main():
-    global LOG_KEY_PRESS_VALUES, DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS, DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS,speed
+    global LOG_KEY_PRESS_VALUES, DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS, DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS, speed
     global tello
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -590,8 +619,10 @@ def main():
     ap.add_argument("--test-install", action='store_true', help="Test the command can run, then exit and do nothing. ")
     ap.add_argument("--display-video", action='store_true', help="Display Drone video using OpenCV.")
     ap.add_argument("--display-unknown-keyvalue", action='store_true', help="Display value of unknown keyboard values.")
-    ap.add_argument("--keyboard-flying-distance", type=int, default=30, help="When using keyboard to fly, this is the default distance in cm to fly. Default=30")
-    ap.add_argument("--keyboard-flying-rotation", type=int, default=90, help="When using keyboard to fly, this is the default rotation in degrees to rotate. Default=90")
+    ap.add_argument("--keyboard-flying-distance", type=int, default=30,
+                    help="When using keyboard to fly, this is the default distance in cm to fly. Default=30")
+    ap.add_argument("--keyboard-flying-rotation", type=int, default=90,
+                    help="When using keyboard to fly, this is the default rotation in degrees to rotate. Default=90")
 
     ap.add_argument("--handler", type=str, required=False, default="",
                     help="Name of the python file with an init and handler method.  Do not include the .py extension and it has to be in the same folder as this main driver")
@@ -605,6 +636,7 @@ def main():
                                help="Flag to control whether to use the computer webcam as a simulated Tello video feed. Default: False")
     ap.add_argument("--show-original-video", action='store_true',
                     help="Flag to control whether to show the original video frame from the Tello along with frame processed by the handler function. Default: False")
+    ap.add_argument("--tello-web", action='store_true', help="Default: False. Start the Tello control web application at url:  http://localhost:8080")
 
     args = vars(ap.parse_args())
     if args['test_install']:
@@ -622,6 +654,7 @@ def main():
 
     LOGGER.debug(args.items())
 
+    start_tello_web = args['tello_web']
     show_original_frame = args['show_original_video']
     fly = args['fly']
     LOGGER.debug(f"Fly: {fly}")
@@ -641,7 +674,6 @@ def main():
     if tello_video_sim:
         display_video = True
         show_original_frame = False
-
 
     # display unknown keyboard key values in Cmd window and in console
     if args['display_unknown_keyvalue']:
@@ -670,11 +702,11 @@ def main():
             cv2.moveWindow(ORIGINAL_VIDEO_WINDOW_NAME, 200, 100)
             cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 450, 410)
             if display_video:
-                cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200+IMAGE_WIDTH, 100)
+                cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200 + IMAGE_WIDTH, 100)
         else:
             if display_video:
                 cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200, 100)
-            cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 200+IMAGE_WIDTH, 100)
+            cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 200 + IMAGE_WIDTH, 100)
 
         # -----------------------  Initialize the Tello ----------------------
         tello = DroneBlocksTello()
@@ -691,20 +723,41 @@ def main():
         # -----------------------  DONE Initialize the Tello ----------------------
 
         # ---------------------------- Initialize background processing thread and script runner --------
+        # if the user did not specify a handler function, do not create the background thread
         stop_event = threading.Event()
-        ready_to_show_video_event = threading.Event()
-        p1 = threading.Thread(target=process_tello_video_feed,
-                              args=(
-                                handler_file, video_queue, stop_event, ready_to_show_video_event, fly, tello_video_sim,
-                                display_video,))
-        p1.setDaemon(True)
-        p1.start()
+        if handler_file is not None:
+            ready_to_show_video_event = threading.Event()
+            p1 = threading.Thread(target=process_tello_video_feed,
+                                  args=(
+                                      handler_file, video_queue, stop_event, ready_to_show_video_event, fly,
+                                      tello_video_sim,
+                                      display_video,))
+            p1.setDaemon(True)
+            p1.start()
         # ---------------------------- DONE Initialize background processing thread and script runner --------
+
+        # -----------------------------------------------------------
+        # ---------------------------- Initialize Web Server --------
+        # -----------------------------------------------------------
+        if start_tello_web:
+            p2 = threading.Thread(target=web_main,
+                                  args=(tello, stop_event
+                                        ))
+            p2.setDaemon(True)
+            p2.start()
+        # -----------------------------------------------------------
+        # ---------------------------- END Initialize Web Server --------
+        # -----------------------------------------------------------
 
         # wait one second for the process thread to kick in
         time.sleep(1)
         frame_read = None
         while True:
+            # this can become a very tight loop
+            # there are use cases where you might not want to do anything
+            # but run the tello-web application.
+            # to provide some breathing room, sleep this loop for a short time
+            time.sleep(0.1)
             if frame_read is None and tello is not None and show_original_frame:
                 try:
                     frame_read = tello.get_frame_read()
@@ -724,6 +777,15 @@ def main():
                     else:
                         break
                 break
+
+            if stop_event.isSet():
+                ready_to_show_video_event.clear()
+                # wait up to n seconds for the handler thread to exit
+                # the handler thread will clear the stop_event when it
+                # exits
+                time.sleep(3)
+                break
+
 
             ready_to_show_video_event.set()
             try:
@@ -772,6 +834,8 @@ def main():
         LOGGER.debug("Complete...")
         if display_video:
             cv2.destroyWindow(TELLO_VIDEO_WINDOW_NAME)
+        if show_original_frame:
+            cv2.destroyWindow(ORIGINAL_VIDEO_WINDOW_NAME)
         cv2.destroyWindow(KEYBOARD_CMD_WINDOW_NAME)
         cv2.destroyAllWindows()
         shutdown_gracefully()

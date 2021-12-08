@@ -1,2 +1,3 @@
 recursive-include droneblocks/media *
 recursive-include droneblocks/data *
+recursive-include droneblocks/web *

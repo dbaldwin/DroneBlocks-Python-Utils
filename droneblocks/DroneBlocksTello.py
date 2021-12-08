@@ -32,6 +32,8 @@ class DroneBlocksTello(Tello):
 
     def get_speed(self) -> int:
         """Query speed setting (cm/s)
+        This method is in the DroneBlocksTello class because the Tello class
+        uses a different command that no longer seems supported.
         Returns:
             int: 1-100
         """
@@ -52,6 +54,8 @@ class DroneBlocksTello(Tello):
             freq: 0.1-2.5Hz
         :return: OK/ERROR
         """
+        freq = max(min(freq, 2.5), 0.1)
+
         if 0.1 <= freq <= 2.5 and 0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255:
             return self.send_command_with_return(f"EXT led br {freq} {r} {g} {b}")
         else:
@@ -65,6 +69,8 @@ class DroneBlocksTello(Tello):
 
     def alternate_top_led(self, r1: int, g1: int, b1: int, r2: int = 0, g2: int = 0, b2: int = 0,
                           freq: float = 2.5) -> str:
+        freq = max(min(freq, 2.5), 0.1)
+
         return self.send_command_with_return(f"EXT led bl {freq} {r1} {g1} {b1} {r2} {g2} {b2}")
 
     def change_image_color(self, image_string: str, from_color: str, to_color: str) -> str:
@@ -126,6 +132,7 @@ class DroneBlocksTello(Tello):
 
     def scroll_string(self, message: str, scroll_dir: str = LEFT, display_color: str = PURPLE,
                       rate: float = 2.5) -> str:
+        rate = max(min(rate, 2.5), 0.1)
         if len(message) > 70:
             message = message[0:70]
 
