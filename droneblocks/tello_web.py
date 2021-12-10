@@ -1,4 +1,4 @@
-from bottle import route, run, template, TEMPLATE_PATH, view, static_file
+from bottle import route, run, request, template, TEMPLATE_PATH, view, static_file
 import pkgutil
 from droneblocks.DroneBlocksContextManager import DroneBlocksContextManager
 import argparse
@@ -12,7 +12,8 @@ tello_state = {
     'web_root': "",
     'battery_level': 'Unknown',
     'command_status_message': '',
-    'command_success': True
+    'command_success': True,
+    'temp': 'Unknown'
 
 }
 
@@ -20,6 +21,33 @@ tello_reference = None
 
 command_status_message = ""
 command_success = False
+
+def _execute_command(request):
+    global command_status_message, command_success
+    try:
+        command = request.query.command or None
+        print(command)
+        if tello_reference:
+            if command == 'move-up':
+                tello_reference.move_up(30)
+            elif command == 'move-down':
+                tello_reference.move_down(30)
+            elif command == 'move-right':
+                tello_reference.move_right(30)
+            elif command == 'move-left':
+                tello_reference.move_left(30)
+            elif command == 'takeoff':
+                tello_reference.takeoff()
+
+        command_status_message=f'{command} completed'
+        command_success = True
+        print(command)
+    except:
+        command_success = False
+        command_status_message=f'{command} Command Failed'
+
+    _refresh_tello_state()
+    return dict(tello_state=tello_state)
 
 def _refresh_tello_state():
     if tello_reference:
@@ -33,10 +61,10 @@ def _refresh_tello_state():
     tello_state['command_success'] = command_success
 
 
-
+# route will retrieve static assets
 @route('/static/<filepath:path>')
 def server_static(filepath):
-    return static_file(filepath, root=f"{web_root}/images")
+    return static_file(filepath, root=f"{web_root}/static/")
 
 @route('/')
 @view('index')
@@ -116,19 +144,23 @@ def motor_off():
     _refresh_tello_state()
     return dict(tello_state=tello_state)
 
+@route('/execute')
+@view('index')
+def execute():
+    return _execute_command(request)
 
 @route('/land')
 @view('landing')
 def land():
     global command_status_message,command_success
     try:
+        print("stop event set")
+        if tello_reference is not None and tello_reference.is_flying:
+            tello_reference.land()
         if web_stop_event is not None:
-            print("stop event set")
-            if tello_reference is not None and tello_reference.is_flying:
-                tello_reference.land()
             web_stop_event.set()
-            command_status_message = 'Land Initiated'
-            command_success = True
+        command_status_message = 'Land Initiated'
+        command_success = True
     except Exception as exc:
         command_success = False
         command_status_message='Land Command Failed'
@@ -163,7 +195,6 @@ if __name__ == '__main__':
     args = vars(ap.parse_args())
 
     dry_run = args['dry_run']
-    dry_run = True
     if dry_run:
         web_main(None)
     else:
