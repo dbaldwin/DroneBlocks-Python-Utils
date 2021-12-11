@@ -1,4 +1,4 @@
-from bottle import route, run, request, template, TEMPLATE_PATH, view, static_file
+from bottle import post, route, run, request, template, TEMPLATE_PATH, view, static_file
 import pkgutil
 from droneblocks.DroneBlocksContextManager import DroneBlocksContextManager
 import argparse
@@ -7,13 +7,20 @@ import time
 web_root = None
 web_stop_event = None
 
+tello_model = 'Tello'
+
+default_distance=30
+
 tello_state = {
     'height': 30,
     'web_root': "",
     'battery_level': 'Unknown',
     'command_status_message': '',
     'command_success': True,
-    'temp': 'Unknown'
+    'temp': 'Unknown',
+    'flight_time': 'Unknown',
+    'tello_model': tello_model,
+    'fly_distance': default_distance
 
 }
 
@@ -22,6 +29,17 @@ tello_reference = None
 command_status_message = ""
 command_success = False
 
+friendly_command_name = {
+    'move-up': 'Fly Up',
+    'move-down': 'Fly Down',
+    'move-right': 'Fly Right',
+    'move-left': 'Fly Left',
+    'cw': 'Rotate Clockwise',
+    'ccw': 'Rotate Counter Clockwise',
+    'move-forward': 'Fly Forward',
+    'move-back': 'Fly Backwards'
+}
+
 def _execute_command(request):
     global command_status_message, command_success
     try:
@@ -29,16 +47,25 @@ def _execute_command(request):
         print(command)
         if tello_reference:
             if command == 'move-up':
-                tello_reference.move_up(30)
+                tello_reference.move_up(default_distance)
             elif command == 'move-down':
-                tello_reference.move_down(30)
+                tello_reference.move_down(default_distance)
             elif command == 'move-right':
-                tello_reference.move_right(30)
+                tello_reference.move_right(default_distance)
             elif command == 'move-left':
-                tello_reference.move_left(30)
+                tello_reference.move_left(default_distance)
             elif command == 'takeoff':
                 tello_reference.takeoff()
+            elif command == 'cw':
+                tello_reference.rotate_clockwise(90)
+            elif command == 'ccw':
+                tello_reference.rotate_counter_clockwise(90)
+            elif command == 'move-forward':
+                tello_reference.move_forward(default_distance)
+            elif command == 'move-back':
+                tello_reference.move_back(default_distance)
 
+        command = friendly_command_name[command]
         command_status_message=f'{command} completed'
         command_success = True
         print(command)
@@ -50,15 +77,28 @@ def _execute_command(request):
     return dict(tello_state=tello_state)
 
 def _refresh_tello_state():
+    """
+    {'mid': -2, 'x': -200, 'y': -200, 'z': -200, 'mpry': '0,0,0', 'pitch': 0,
+    'roll': 0, 'yaw': 0, 'vgx': 0, 'vgy': 0, 'vgz': 0, 'templ': 66,
+    'temph': 69, 'tof': 10, 'h': 0, 'bat': 12, 'baro': 256.7,
+    'time': 0, 'agx': 10.0, 'agy': 0.0, 'agz': -999.0}
+
+    :return:
+    :rtype:
+    """
     if tello_reference:
-        bat = tello_reference.get_battery()
-        tello_state['battery_level'] = bat
+        current_tello_state = tello_reference.get_current_state()
+        if tello_state:
+            tello_state['battery_level'] = current_tello_state['bat']
+            tello_state['temp'] = int((current_tello_state['temph']+current_tello_state['templ'])/2)
+            tello_state['flight_time'] = current_tello_state['time']
+            tello_state['height'] = current_tello_state['h']
 
-        temp = tello_reference.get_temperature()
-        tello_state['temp'] = temp
-
+    tello_state['fly_distance'] = default_distance
+    tello_state['tello_model'] = tello_model
     tello_state['command_status_message'] = command_status_message
     tello_state['command_success'] = command_success
+
 
 
 # route will retrieve static assets
@@ -75,39 +115,37 @@ def index():
         pass
     return dict(tello_state=tello_state)
 
-@route('/move-up')
-@view('index')
-def move_up():
-    global command_status_message, command_success
-    try:
-        if tello_reference:
-            tello_reference.move_up(30)
-        command_status_message='MoveUp completed'
-        command_success = True
-        print("Move Up")
-    except:
-        command_success = False
-        command_status_message='MoveUp Command Failed'
 
-    _refresh_tello_state()
-    return dict(tello_state=tello_state)
-
-@route('/move-down')
+@post('/update-distance' )
 @view('index')
-def move_down():
+def update_distance():
+    global default_distance
     global command_status_message,command_success
+
     try:
-        if tello_reference:
-            tello_reference.move_down(30)
-        command_status_message='MoveDown completed'
-        command_success = True
-        print("Move Down")
+        if request.forms:
+            if 'distancevalue' in request.forms:
+                default_distance = int(request.forms['distancevalue'])
+        _refresh_tello_state()
     except:
+        command_status_message = "Could not update default Flying distance"
         command_success = False
-        command_status_message='MoveDown Command Failed'
+
+    return dict(tello_state=tello_state)
+
+
+@route('/toggle-model')
+@view('index')
+def toggle_model():
+    global tello_model
+    if tello_model == 'Tello':
+        tello_model = 'Tello Talent'
+    else:
+        tello_model = 'Tello'
 
     _refresh_tello_state()
     return dict(tello_state=tello_state)
+
 
 @route('/motor-on')
 @view('index')

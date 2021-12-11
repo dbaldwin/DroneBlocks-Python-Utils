@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>DroneBlocks Tello Web</title>
 
-    <link href="static/css/neumorphism.css" rel="stylesheet"/>
+    <link href="/static/css/neumorphism.css" rel="stylesheet"/>
 
     <meta http-equiv="refresh" content="15;url=http://localhost:8080/"/>
 </head>
@@ -12,10 +12,26 @@
 <nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">
-            <img src="/static/images/droneblocks_logo.png" alt="" width="30" height="24"
+            <img src="/static/images/droneblocks_logo.png" alt=""
                  class="d-inline-block align-text-top">
             DroneBlocks Tello Control Web Application
         </a>
+        % if tello_state['tello_model'] == 'Tello':
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="customSwitch1"
+                   onclick="location.href='/toggle-model'">
+            <label class="custom-control-label" for="customSwitch1">{{ tello_state['tello_model'] }}</label>
+        </div>
+        % end
+        % if tello_state['tello_model'] == 'Tello Talent':
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="customSwitch2" checked
+                   onclick="location.href='/toggle-model'">
+            <label class="custom-control-label" for="customSwitch2">{{ tello_state['tello_model'] }}</label>
+        </div>
+        % end
+
+
         % if tello_state['command_success'] == True:
         <p class="text-success">
             {{ tello_state['command_status_message'] }}</p>
@@ -27,12 +43,23 @@
 
 </nav>
 
+<div class="container z-2">
+    <div class="row my-5 justify-content-center text-center">
+        <div class="col-lg-8">
+            % if tello_state['tello_model'] == 'Tello':
+            <img src="/static/images/tello_drone_image2.png"
+                 class="rounded-circle img-thumbnail image-lg border-light shadow-inset p-3" alt="Joseph Avatar">
+            % else:
+            <img src="/static/images/rm_tt_transparent.png"
+                 class="rounded-circle img-thumbnail image-lg border-light shadow-inset p-3" alt="Joseph Avatar">
+            % end
+        </div>
+    </div>
+</div>
 
-<img class="rounded mx-auto d-block" src="/static/images/tello_drone_image2.png" width="600"/>
-
-<div class="row mt-5 mt-lg-6 justify-content-around">
+<div class="row mt-5 ml-4 mr-4 justify-content-around">
     <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
-        <h2 class="h5 mb-4">Overview</h2>
+        <h2 class="h5 mb-4">Status</h2>
         <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
                 <h6>Battery:</h6>{{tello_state['battery_level']}}
@@ -43,37 +70,119 @@
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <h6>Temperature(C):</h6>{{tello_state['temp']}}
             </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <h6>Flight Time:</h6>{{tello_state['flight_time']}}
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <h6>Fly Distance:</h6>{{tello_state['fly_distance']}}
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <form method="post" action="/update-distance">
+                <h6>Update Fly Distance:</h6>
+                    <input type="text" name="distancevalue"/>
+                                    <button class="btn btn-sm btn-primary" type="submit"
+                        data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
+                </button>
+                </form>
+            </li>
         </ul>
     </div>
     <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
         <h2 class="h5 mb-4">Operations</h2>
         <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>TakeOff</h6><button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=takeoff'" data-toggle="tooltip" data-placement="right" title="Send Move Up Command 30 cms">Go</button>
+                <h6>Fly Up</h6>
+                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=move-up'"
+                        data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
+                </button>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Move Up</h6><button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=move-up'" data-toggle="tooltip" data-placement="right" title="Send Move Up Command 30 cms">Go</button>
+                <h6>Fly Down</h6>
+                <button class="btn btn-sm btn-primary" type="button"
+                        onclick="location.href='/execute?command=move-down'">Go
+                </button>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Move Down</h6><button class="btn btn-sm btn-primary" type="button"onclick="location.href='/execute?command=move-down'">Go</button>
+                <h6>Fly Left</h6>
+                <button class="btn btn-sm btn-primary" type="button"
+                        onclick="location.href='/execute?command=move-left'">Go
+                </button>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Move Left</h6><button class="btn btn-sm btn-primary" type="button"onclick="location.href='/execute?command=move-left'">Go</button>
+                <h6>Fly Right</h6>
+                <button class="btn btn-sm btn-primary" type="button"
+                        onclick="location.href='/execute?command=move-right'">Go
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+        <h2 class="h5 mb-4">Operations</h2>
+        <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                <h6>Fly Forward</h6>
+                <button class="btn btn-sm btn-primary" type="button"
+                        onclick="location.href='/execute?command=move-forward'">Go
+                </button>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Move Right</h6><button class="btn btn-sm btn-primary" type="button"onclick="location.href='/execute?command=move-right'">Go</button>
+                <h6>Fly Backwards</h6>
+                <button class="btn btn-sm btn-primary" type="button"
+                        onclick="location.href='/execute?command=move-back'">Go
+                </button>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Land</h6><button class="btn btn-sm btn-primary" type="button"onclick="location.href='/land'">Go</button>
+                <h6>Rotate Clockwise</h6>
+                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=cw'">Go
+                </button>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Motor On</h6><button class="btn btn-sm btn-primary" type="button"onclick="location.href='/motor-on'">Go</button>
+                <h6>Rotate Counter Clockwise</h6>
+                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=ccw'">Go
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+        <h2 class="h5 mb-4">Operations</h2>
+        <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                <h6>TakeOff</h6>
+                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=takeoff'"
+                        data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
+                </button>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Motor Off</h6><button class="btn btn-sm btn-primary" type="button"onclick="location.href='/motor-off'">Go</button>
+                <h6>Land</h6>
+                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/land'">Go</button>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                <h6>Motor On</h6>
+                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/motor-on'">Go</button>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                <h6>Motor Off</h6>
+                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/motor-off'">Go</button>
             </li>
         </ul>
     </div>
 </div>
+
+% if tello_state['tello_model'] == 'Tello Talent':
+<div class="pb-6 bg-primary overflow-hidden text-center border-bottom border-light">
+    <div class="container z-2">
+        <div class="row mb-4 justify-content-center">
+            <div class="col-12 col-md-8">
+                <h1 class="display-3 mb-4">Tello Talent</h1>
+                <p class="lead">Operations specific to the Tello Talent</p>
+            </div>
+        </div>
+    </div>
+</div>
+% end
+
+<script type='text/javascript' src='/static/js/neumorphism.js'></script>
+
 </body>
+
 </html>
