@@ -78,11 +78,11 @@
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <form method="post" action="/update-distance">
-                <h6>Update Fly Distance:</h6>
+                    <h6>Update Fly Distance:</h6>
                     <input type="text" name="distancevalue"/>
-                                    <button class="btn btn-sm btn-primary" type="submit"
-                        data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
-                </button>
+                    <button class="btn btn-sm btn-primary" type="submit"
+                            data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
+                    </button>
                 </form>
             </li>
         </ul>
@@ -178,10 +178,32 @@
             </div>
         </div>
     </div>
+    <div class="row mt-5 ml-4 mr-4 justify-content-around">
+        <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+            <h2 class="h5 mb-4">Top LED</h2>
+            <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <form method="post" action="/tt-set-top-led">
+                        <h6>Red:</h6>
+                        <input type="number" min="0" max="255" name="tt-top-led-red" value="64"/>
+                        <h6>Green:</h6>
+                        <input type="number" min="0" max="255" name="tt-top-led-green" value="64"/>
+                        <h6>Blue:</h6>
+                        <input type="number" min="0" max="255" name="tt-top-led-blue" value="64"/>
+                        </br>
+                        <button class="btn btn-sm btn-primary" type="submit"
+                                data-toggle="tooltip" data-placement="right" title="Update">Update
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>
 % end
 
 <script type='text/javascript' src='/static/js/neumorphism.js'></script>
+<script type='text/javascript' src='/static/js/vue.min.js'></script>
 
 </body>
 
