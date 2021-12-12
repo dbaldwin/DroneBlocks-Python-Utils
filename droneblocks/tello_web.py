@@ -37,7 +37,10 @@ friendly_command_name = {
     'cw': 'Rotate Clockwise',
     'ccw': 'Rotate Counter Clockwise',
     'move-forward': 'Fly Forward',
-    'move-back': 'Fly Backwards'
+    'move-back': 'Fly Backwards',
+    'motor-on': 'Turn Motor On',
+    'motor-off': 'Turn Motor Off',
+    'takeoff': 'TakeOff',
 }
 
 def _execute_command(request):
@@ -64,6 +67,10 @@ def _execute_command(request):
                 tello_reference.move_forward(default_distance)
             elif command == 'move-back':
                 tello_reference.move_back(default_distance)
+            elif command == 'motor-on':
+                tello_reference.turn_motor_on()
+            elif command == 'motor-off':
+                tello_reference.turn_motor_off()
 
         command = friendly_command_name[command]
         command_status_message=f'{command} completed'
@@ -73,8 +80,7 @@ def _execute_command(request):
         command_success = False
         command_status_message=f'{command} Command Failed'
 
-    _refresh_tello_state()
-    return dict(tello_state=tello_state)
+    return dict(command_success=command_success, command_status_message=command_status_message)
 
 def _refresh_tello_state():
     """
@@ -100,7 +106,6 @@ def _refresh_tello_state():
     tello_state['command_success'] = command_success
 
 
-
 # route will retrieve static assets
 @route('/static/<filepath:path>')
 def server_static(filepath):
@@ -115,6 +120,13 @@ def index():
         pass
     return dict(tello_state=tello_state)
 
+@route('/status-update')
+def status_update():
+    try:
+        _refresh_tello_state()
+    except:
+        pass
+    return dict(tello_state=tello_state)
 
 @post('/update-distance' )
 @view('index')
@@ -147,48 +159,12 @@ def toggle_model():
     return dict(tello_state=tello_state)
 
 
-@route('/motor-on')
-@view('index')
-def motor_on():
-    global command_status_message,command_success
-    try:
-        if tello_reference:
-            tello_reference.turn_motor_on()
-        command_status_message='Motor On completed'
-        command_success = True
-        print("Motor On")
-    except Exception as exc:
-        command_success = False
-        command_status_message='Motor On Command Failed'
-        print(exc)
-
-    _refresh_tello_state()
-    return dict(tello_state=tello_state)
-
-@route('/motor-off')
-@view('index')
-def motor_off():
-    global command_status_message,command_success
-    try:
-        if tello_reference:
-            tello_reference.turn_motor_off()
-        command_status_message='Motor Off completed'
-        command_success = True
-        print("Motor Off")
-    except:
-        command_success = False
-        command_status_message='Motor Off Command Failed'
-
-    _refresh_tello_state()
-    return dict(tello_state=tello_state)
-
 @route('/execute')
-@view('index')
 def execute():
     return _execute_command(request)
 
 @route('/land')
-@view('landing')
+# @view('landing')
 def land():
     global command_status_message,command_success
     try:
@@ -204,8 +180,7 @@ def land():
         command_status_message='Land Command Failed'
         print(f"stop event exception: {exc} ")
 
-    _refresh_tello_state()
-    return
+    return dict(command_success=command_success, command_status_message=command_status_message)
 
 def web_main(tello, stop_event=None):
     global tello_reference, web_root, web_stop_event

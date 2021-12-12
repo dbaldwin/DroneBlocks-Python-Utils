@@ -6,204 +6,292 @@
 
     <link href="/static/css/neumorphism.css" rel="stylesheet"/>
 
-    <meta http-equiv="refresh" content="15;url=http://localhost:8080/"/>
+    <!--    <meta http-equiv="refresh" content="15;url=http://localhost:8080/"/>-->
 </head>
 <body>
-<nav class="navbar navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-            <img src="/static/images/droneblocks_logo.png" alt=""
-                 class="d-inline-block align-text-top">
-            DroneBlocks Tello Control Web Application
-        </a>
-        % if tello_state['tello_model'] == 'Tello':
-        <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="customSwitch1"
-                   onclick="location.href='/toggle-model'">
-            <label class="custom-control-label" for="customSwitch1">{{ tello_state['tello_model'] }}</label>
+<div class="content" id="tello-svc">
+
+    <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="/static/images/droneblocks_logo.png" alt=""
+                     class="d-inline-block align-text-top">
+                DroneBlocks Tello Control Web Application
+            </a>
+
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="customSwitch2"
+                       v-on:click="toggle_tello_model()">
+                <label class="custom-control-label" for="customSwitch2">[[tello_model_label]]</label>
+            </div>
+
+            <p v-if="command_success" class="text-success">
+                [[command_status_message]]</p>
+            <p v-else class="text-danger">
+                [[command_status_message]]</p>
+
         </div>
-        % end
-        % if tello_state['tello_model'] == 'Tello Talent':
-        <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="customSwitch2" checked
-                   onclick="location.href='/toggle-model'">
-            <label class="custom-control-label" for="customSwitch2">{{ tello_state['tello_model'] }}</label>
-        </div>
-        % end
 
+    </nav>
 
-        % if tello_state['command_success'] == True:
-        <p class="text-success">
-            {{ tello_state['command_status_message'] }}</p>
-        % else:
-        <p class="text-danger">
-            {{ tello_state['command_status_message'] }}</p>
-        % end
-    </div>
-
-</nav>
-
-<div class="container z-2">
-    <div class="row my-5 justify-content-center text-center">
-        <div class="col-lg-8">
-            % if tello_state['tello_model'] == 'Tello':
-            <img src="/static/images/tello_drone_image2.png"
-                 class="rounded-circle img-thumbnail image-lg border-light shadow-inset p-3" alt="Joseph Avatar">
-            % else:
-            <img src="/static/images/rm_tt_transparent.png"
-                 class="rounded-circle img-thumbnail image-lg border-light shadow-inset p-3" alt="Joseph Avatar">
-            % end
-        </div>
-    </div>
-</div>
-
-<div class="row mt-5 ml-4 mr-4 justify-content-around">
-    <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
-        <h2 class="h5 mb-4">Status</h2>
-        <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Battery:</h6>{{tello_state['battery_level']}}
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Height:</h6>{{tello_state['height']}}
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <h6>Temperature(C):</h6>{{tello_state['temp']}}
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <h6>Flight Time:</h6>{{tello_state['flight_time']}}
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <h6>Fly Distance:</h6>{{tello_state['fly_distance']}}
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <form method="post" action="/update-distance">
-                    <h6>Update Fly Distance:</h6>
-                    <input type="text" name="distancevalue"/>
-                    <button class="btn btn-sm btn-primary" type="submit"
-                            data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </div>
-    <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
-        <h2 class="h5 mb-4">Operations</h2>
-        <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Fly Up</h6>
-                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=move-up'"
-                        data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
-                </button>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Fly Down</h6>
-                <button class="btn btn-sm btn-primary" type="button"
-                        onclick="location.href='/execute?command=move-down'">Go
-                </button>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Fly Left</h6>
-                <button class="btn btn-sm btn-primary" type="button"
-                        onclick="location.href='/execute?command=move-left'">Go
-                </button>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Fly Right</h6>
-                <button class="btn btn-sm btn-primary" type="button"
-                        onclick="location.href='/execute?command=move-right'">Go
-                </button>
-            </li>
-        </ul>
-    </div>
-    <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
-        <h2 class="h5 mb-4">Operations</h2>
-        <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Fly Forward</h6>
-                <button class="btn btn-sm btn-primary" type="button"
-                        onclick="location.href='/execute?command=move-forward'">Go
-                </button>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Fly Backwards</h6>
-                <button class="btn btn-sm btn-primary" type="button"
-                        onclick="location.href='/execute?command=move-back'">Go
-                </button>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Rotate Clockwise</h6>
-                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=cw'">Go
-                </button>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Rotate Counter Clockwise</h6>
-                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=ccw'">Go
-                </button>
-            </li>
-        </ul>
-    </div>
-    <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
-        <h2 class="h5 mb-4">Operations</h2>
-        <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>TakeOff</h6>
-                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/execute?command=takeoff'"
-                        data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
-                </button>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Land</h6>
-                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/land'">Go</button>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Motor On</h6>
-                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/motor-on'">Go</button>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <h6>Motor Off</h6>
-                <button class="btn btn-sm btn-primary" type="button" onclick="location.href='/motor-off'">Go</button>
-            </li>
-        </ul>
-    </div>
-</div>
-
-% if tello_state['tello_model'] == 'Tello Talent':
-<div class="pb-6 bg-primary overflow-hidden text-center border-bottom border-light">
     <div class="container z-2">
-        <div class="row mb-4 justify-content-center">
-            <div class="col-12 col-md-8">
-                <h1 class="display-3 mb-4">Tello Talent</h1>
-                <p class="lead">Operations specific to the Tello Talent</p>
+        <div class="row my-5 justify-content-center text-center">
+            <div class="col-lg-8">
+                <img v-if="use_tello_talent" src="/static/images/rm_tt_transparent.png"
+                     class="rounded-circle img-thumbnail image-lg border-light shadow-inset p-3" alt="Joseph Avatar">
+                <img v-else src="/static/images/tello_drone_image2.png"
+                     class="rounded-circle img-thumbnail image-lg border-light shadow-inset p-3" alt="Joseph Avatar">
             </div>
         </div>
     </div>
+
     <div class="row mt-5 ml-4 mr-4 justify-content-around">
         <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
-            <h2 class="h5 mb-4">Top LED</h2>
+            <h2 class="h5 mb-4">Status</h2>
             <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Battery:</h6> [[battery_level]]
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Height:</h6>[[height]]
+                </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <form method="post" action="/tt-set-top-led">
-                        <h6>Red:</h6>
-                        <input type="number" min="0" max="255" name="tt-top-led-red" value="64"/>
-                        <h6>Green:</h6>
-                        <input type="number" min="0" max="255" name="tt-top-led-green" value="64"/>
-                        <h6>Blue:</h6>
-                        <input type="number" min="0" max="255" name="tt-top-led-blue" value="64"/>
-                        </br>
+                    <h6>Temperature(C):</h6>[[temp]]
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <h6>Flight Time:</h6>[[flight_time]]
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <h6>Fly Distance:</h6>{{tello_state['fly_distance']}}
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <form method="post" action="/update-distance">
+                        <h6>Update Fly Distance:</h6>
+                        <input type="text" name="distancevalue"/>
                         <button class="btn btn-sm btn-primary" type="submit"
-                                data-toggle="tooltip" data-placement="right" title="Update">Update
+                                data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
                         </button>
                     </form>
                 </li>
             </ul>
         </div>
+        <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+            <h2 class="h5 mb-4">Operations</h2>
+            <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Up</h6>
+                    <button class="btn btn-sm btn-primary" type="button" v-on:click="execute_command('move-up')"
+                            data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Down</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-down')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Left</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-left')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Right</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-right')">Go
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+            <h2 class="h5 mb-4">Operations</h2>
+            <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Forward</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-forward')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Backwards</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-back')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Rotate Clockwise</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('cw')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Rotate Counter Clockwise</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('ccw')">Go
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+            <h2 class="h5 mb-4">Operations</h2>
+            <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>TakeOff</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('takeoff')"
+                            data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Land</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_land()">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Motor On</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('motor-on')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Motor Off</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('motor-off')">Go
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div v-if="use_tello_talent" class="pb-6 bg-primary overflow-hidden text-center border-bottom border-light">
+        <div class="container z-2">
+            <div class="row mb-4 justify-content-center">
+                <div class="col-12 col-md-8">
+                    <h1 class="display-3 mb-4">Tello Talent</h1>
+                    <p class="lead">Operations specific to the Tello Talent</p>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-5 ml-4 mr-4 justify-content-around">
+            <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+                <h2 class="h5 mb-4">Top LED</h2>
+                <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <form method="post" action="/tt-set-top-led">
+                            <h6>Red:</h6>
+                            <input type="number" min="0" max="255" name="tt-top-led-red" value="64"/>
+                            <h6>Green:</h6>
+                            <input type="number" min="0" max="255" name="tt-top-led-green" value="64"/>
+                            <h6>Blue:</h6>
+                            <input type="number" min="0" max="255" name="tt-top-led-blue" value="64"/>
+                            </br>
+                            <button class="btn btn-sm btn-primary" type="submit"
+                                    data-toggle="tooltip" data-placement="right" title="Update">Update
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
-% end
 
-<script type='text/javascript' src='/static/js/neumorphism.js'></script>
+<script type='text/javascript' src='/static/js/axios.min.js'></script>
 <script type='text/javascript' src='/static/js/vue.min.js'></script>
+<script type='text/javascript' src='/static/js/neumorphism.js'></script>
+
+<script>
+    var tello_svc = new Vue({
+        el: "#tello-svc",
+        delimiters: ["[[", "]]"],
+        data: {
+            battery_level: -666,
+            height: 0,
+            temp: 0,
+            flight_time: 0,
+            command_success: false,
+            command_status_message: '',
+            use_tello_talent: false, // false=Tello true=Tello Talent
+            tello_model_label: 'Tello',
+        },
+        created() {
+            // this.refresh_data('/tables/dyndata');
+            console.log("Created Vue Component")
+            this.timer = setInterval(this.refresh_tello_status, 5000);
+        },
+        methods: {
+            toggle_tello_model: function() {
+                if(this.use_tello_talent == false) {
+                    this.use_tello_talent = true;
+                    this.tello_model_label = 'Tello Talent';
+                } else {
+                    this.use_tello_talent=false;
+                    this.tello_model_label = 'Tello';
+                }
+            },
+            refresh_tello_status: function () {
+                console.log("Refresh Tello Status")
+                axios.get('/status-update')
+                    .then(response => {
+                        console.log(response.data);
+                        console.log(response.data['tello_state']);
+                        const tello_state = response.data['tello_state'];
+                        this.battery_level = tello_state['battery_level'];
+                        this.height = tello_state['height'];
+                        this.temp = tello_state['temp'];
+                        this.flight_time = tello_state['flight_time'];
+                        this.command_status_message = '';
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+            execute_command: function (cmd) {
+                console.log('execute: ' + cmd);
+                const url = '/execute?command=' + cmd;
+                console.log('url: ' + url);
+                axios.get(url)
+                    .then(response => {
+                        console.log(response.data);
+                        this.command_success = response.data['command_success'];
+                        this.command_status_message = response.data['command_status_message'];
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+            execute_land: function () {
+                const url = '/land';
+                console.log('url: ' + url);
+                axios.get(url)
+                    .then(response => {
+                        console.log(response.data);
+                        this.command_success = response.data['command_success'];
+                        this.command_status_message = response.data['command_status_message'];
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+            refresh_data: function (param1) {
+                console.log('refresh data function called: ' + param1)
+                axios.get(param1)
+                    .then(response => {
+                        console.log(response.data);
+                        this.rows = response.data.rows;
+                        this.columns = response.data.columns;
+
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            }
+        }
+    });
+
+</script>
 
 </body>
 
