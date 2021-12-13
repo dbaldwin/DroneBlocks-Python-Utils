@@ -62,7 +62,7 @@
                     <h6>Flight Time:</h6>[[flight_time]]
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <h6>Fly Distance:</h6>{{tello_state['fly_distance']}}
+                    <h6>Fly Distance:</h6>[[fly_distance]]
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <form method="post" action="/update-distance">
@@ -165,6 +165,9 @@
         </div>
     </div>
 
+    <!--  *********************** -->
+    <!--  TELLO TALENT OPERATIONS -->
+    <!--  *********************** -->
     <div v-if="use_tello_talent" class="pb-6 bg-primary overflow-hidden text-center border-bottom border-light">
         <div class="container z-2">
             <div class="row mb-4 justify-content-center">
@@ -174,23 +177,39 @@
                 </div>
             </div>
         </div>
+
         <div class="row mt-5 ml-4 mr-4 justify-content-around">
             <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
                 <h2 class="h5 mb-4">Top LED</h2>
                 <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <form method="post" action="/tt-set-top-led">
-                            <h6>Red:</h6>
-                            <input type="number" min="0" max="255" name="tt-top-led-red" value="64"/>
-                            <h6>Green:</h6>
-                            <input type="number" min="0" max="255" name="tt-top-led-green" value="64"/>
-                            <h6>Blue:</h6>
-                            <input type="number" min="0" max="255" name="tt-top-led-blue" value="64"/>
-                            </br>
-                            <button class="btn btn-sm btn-primary" type="submit"
-                                    data-toggle="tooltip" data-placement="right" title="Update">Update
-                            </button>
-                        </form>
+                        <h6>Red:</h6>
+                        <input type="number" min="0" max="255" name="tt-top-led-red" v-model="top_led_red"/>
+
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Green:</h6>
+                        <input type="number" min="0" max="255" name="tt-top-led-green" v-model="top_led_blue"/>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Blue:</h6>
+                        <input type="number" min="0" max="255" name="tt-top-led-blue" v-model="top_led_green"/>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <button class="btn btn-sm btn-primary" type="button" v-on:click="set_top_led">Update</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+                <h2 class="h5 mb-4">Display Image</h2>
+                <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Image String:</h6>
+                        <input type="text" max="64" v-model="image_string"/>
+
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <button class="btn btn-sm btn-primary" type="button" v-on:click="display_image">Update</button>
                     </li>
                 </ul>
             </div>
@@ -203,31 +222,66 @@
 <script type='text/javascript' src='/static/js/neumorphism.js'></script>
 
 <script>
+    // Vue.config.devtools = true;
     var tello_svc = new Vue({
         el: "#tello-svc",
         delimiters: ["[[", "]]"],
         data: {
+            top_led_red: 64,
+            top_led_green: 64,
+            top_led_blue: 64,
             battery_level: -666,
             height: 0,
             temp: 0,
             flight_time: 0,
+            fly_distance: 0,
             command_success: false,
             command_status_message: '',
             use_tello_talent: false, // false=Tello true=Tello Talent
             tello_model_label: 'Tello',
+            image_string: '',
         },
         created() {
-            // this.refresh_data('/tables/dyndata');
+            this.refresh_tello_status();
             console.log("Created Vue Component")
             this.timer = setInterval(this.refresh_tello_status, 5000);
         },
         methods: {
-            toggle_tello_model: function() {
-                if(this.use_tello_talent == false) {
+            display_image: function() {
+                console.log("display image");
+                axios.post('/display-image', {
+                    image_string: this.image_string
+                })
+                .then(response => {
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+            },
+            set_top_led: function() {
+                console.log("set top led");
+                console.log(this.top_led_red, this.top_led_green, this.top_led_blue);
+                axios.post('/set-top-led', {
+                    red: this.top_led_red,
+                    green: this.top_led_green,
+                    blue: this.top_led_blue
+                })
+                .then(response => {
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+
+
+            },
+            toggle_tello_model: function () {
+                if (this.use_tello_talent == false) {
                     this.use_tello_talent = true;
                     this.tello_model_label = 'Tello Talent';
                 } else {
-                    this.use_tello_talent=false;
+                    this.use_tello_talent = false;
                     this.tello_model_label = 'Tello';
                 }
             },
@@ -243,6 +297,7 @@
                         this.temp = tello_state['temp'];
                         this.flight_time = tello_state['flight_time'];
                         this.command_status_message = '';
+                        this.fly_distance = tello_state['fly_distance']
                     })
                     .catch(error => {
                         console.log(error);
@@ -250,6 +305,9 @@
             },
             execute_command: function (cmd) {
                 console.log('execute: ' + cmd);
+                if( cmd == 'dummy') {
+                    return;
+                }
                 const url = '/execute?command=' + cmd;
                 console.log('url: ' + url);
                 axios.get(url)

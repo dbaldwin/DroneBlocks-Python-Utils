@@ -145,6 +145,41 @@ def update_distance():
 
     return dict(tello_state=tello_state)
 
+@post('/set-top-led')
+def set_top_led():
+    global default_distance
+    global command_status_message,command_success
+    print("set top led")
+    try:
+        if request.json:
+            r = int(request.json['red'])
+            g = int(request.json['green'])
+            b = int(request.json['blue'])
+            print(r,g,b)
+            if tello_reference:
+                tello_reference.set_top_led(r=r, g=g, b=b)
+    except:
+        command_status_message = "Could not set top led"
+        command_success = False
+
+    return dict(command_success=command_success, command_status_message=command_status_message)
+
+@post('/display-image')
+def display_image():
+    global default_distance
+    global command_status_message,command_success
+    print("display image")
+    try:
+        if request.json:
+            image_string = request.json['image_string']
+            if tello_reference:
+                print(image_string)
+                tello_reference.display_image(image_string)
+    except:
+        command_status_message = "Could not display image string"
+        command_success = False
+
+    return dict(command_success=command_success, command_status_message=command_status_message)
 
 @route('/toggle-model')
 @view('index')
