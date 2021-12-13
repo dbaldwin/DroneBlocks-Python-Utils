@@ -637,6 +637,7 @@ def main():
     ap.add_argument("--show-original-video", action='store_true',
                     help="Flag to control whether to show the original video frame from the Tello along with frame processed by the handler function. Default: False")
     ap.add_argument("--tello-web", action='store_true', help="Default: False. Start the Tello control web application at url:  http://localhost:8080")
+    ap.add_argument("--web-port", required=False, default=8080, type=int, help="Port to start web server on.  Default: 8080")
 
     args = vars(ap.parse_args())
     if args['test_install']:
@@ -654,6 +655,7 @@ def main():
 
     LOGGER.debug(args.items())
 
+    web_port = args['web_port']
     start_tello_web = args['tello_web']
     show_original_frame = args['show_original_video']
     fly = args['fly']
@@ -741,7 +743,7 @@ def main():
         # -----------------------------------------------------------
         if start_tello_web:
             p2 = threading.Thread(target=web_main,
-                                  args=(tello, stop_event
+                                  args=(tello, stop_event, web_port
                                         ))
             p2.setDaemon(True)
             p2.start()

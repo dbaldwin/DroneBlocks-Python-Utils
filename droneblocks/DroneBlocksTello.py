@@ -138,7 +138,59 @@ class DroneBlocksTello(Tello):
 
         return self.send_command_with_return(f"EXT mled {scroll_dir} {display_color} {rate} {message}")
 
+    # ----------------  fly_xyz api to match the droneblocks simulator tello
+    def _inches_to_cm(self, inch_value):
+        return inch_value * 2.54
 
+    def fly_up(self, x, units):
+        if units == 'in':
+            x = self._inches_to_cm(x)
+        self.move_up(x)
+
+    def fly_down(self, x, units):
+        if units == 'in':
+            x = self._inches_to_cm(x)
+        self.move_down(x)
+
+    def fly_left(self, x, units):
+        if units == 'in':
+            x = self._inches_to_cm(x)
+        self.move_left(x)
+
+    def fly_right(self, x, units):
+        if units == 'in':
+            x = self._inches_to_cm(x)
+        self.move_right(x)
+
+    def fly_forward(self, x, units):
+        if units == 'in':
+            x = self._inches_to_cm(x)
+        self.move_forward(x)
+
+    def fly_backward(self, x, units):
+        if units == 'in':
+            x = self._inches_to_cm(x)
+        self.move_back(x)
+
+    def fly_to_xyz(self, x, y,z, units):
+        if units == 'in':
+            x = self._inches_to_cm(x)
+            y = self._inches_to_cm(y)
+            z = self._inches_to_cm(z)
+
+        self.go_xyz_speed(x, y, z, 50)
+
+    def fly_curve(self, x1, y1, z1, x2, y2, z2, units):
+        if units == 'in':
+            x1 = self._inches_to_cm(x1)
+            y1 = self._inches_to_cm(y1)
+            z1 = self._inches_to_cm(z1)
+
+            x2 = self._inches_to_cm(x2)
+            y2 = self._inches_to_cm(y2)
+            z2 = self._inches_to_cm(z2)
+
+        self.curve_xyz_speed(x1, y1, z1, x2, y2, z2, 50)
 if __name__ == '__main__':
     import time
 

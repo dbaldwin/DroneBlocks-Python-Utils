@@ -1,6 +1,7 @@
 from bottle import post, route, run, request, template, TEMPLATE_PATH, view, static_file
 import pkgutil
 from droneblocks.DroneBlocksContextManager import DroneBlocksContextManager
+from droneblocks.DroneBlocksTello import DroneBlocksTello
 import argparse
 import time
 
@@ -200,8 +201,13 @@ def scroll_text():
     try:
         if request.json:
             scroll_string = request.json['scroll_text']
+            scroll_dir = int(request.json['scroll_dir'])
+
             if tello_reference:
-                tello_reference.scroll_string(scroll_string)
+                if scroll_dir == 1:
+                    tello_reference.scroll_string(scroll_string, DroneBlocksTello.LEFT)
+                elif scroll_dir == 2:
+                    tello_reference.scroll_string(scroll_string, DroneBlocksTello.UP)
     except:
         command_status_message = "Could not display image string"
         command_success = False
@@ -245,7 +251,7 @@ def land():
 
     return dict(command_success=command_success, command_status_message=command_status_message)
 
-def web_main(tello, stop_event=None):
+def web_main(tello, stop_event=None, port=8080):
     global tello_reference, web_root, web_stop_event
     web_stop_event = stop_event
 
@@ -261,18 +267,20 @@ def web_main(tello, stop_event=None):
     web_root = directory
 
     TEMPLATE_PATH.append(directory)
-    run(host='localhost', port=8080)
+    run(host='localhost', port=port)
 
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action='store_true', help="Do not instantiate Tello reference")
+    ap.add_argument("--web-port", required=False, default=8080, type=int, help="Port to start web server on.  Default: 8080")
 
     args = vars(ap.parse_args())
 
     dry_run = args['dry_run']
+    port = args['web_port']
     if dry_run:
-        web_main(None)
+        web_main(None, stop_event=None, port=port)
     else:
         with DroneBlocksContextManager() as db_tello:
-            web_main(db_tello)
+            web_main(db_tello, stop_event=None, port=port)
