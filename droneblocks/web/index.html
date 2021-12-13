@@ -25,9 +25,9 @@
                 <label class="custom-control-label" for="customSwitch2">[[tello_model_label]]</label>
             </div>
 
-            <p v-if="command_success" class="text-success">
+            <p v-if="command_success" class="text-success mb-0">
                 [[command_status_message]]</p>
-            <p v-else class="text-danger">
+            <p v-else class="text-danger mb-0">
                 [[command_status_message]]</p>
 
         </div>
@@ -198,6 +198,10 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <button class="btn btn-sm btn-primary" type="button" v-on:click="set_top_led">Update</button>
                     </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <button class="btn btn-sm btn-primary" type="button" v-on:click="clear_top_led">Clear</button>
+                    </li>
+
                 </ul>
             </div>
             <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
@@ -206,10 +210,53 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <h6>Image String:</h6>
                         <input type="text" max="64" v-model="image_string"/>
+                        <button class="btn btn-sm btn-primary" type="button"
+                                v-on:click="display_image(1)">Go
+                        </button>
 
                     </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Heart</h6>
+                        <button class="btn btn-sm btn-primary" type="button"
+                                v-on:click="display_image(2)">Go
+                        </button>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Happy Face</h6>
+                        <button class="btn btn-sm btn-primary" type="button"
+                                v-on:click="display_image(3)">Go
+                        </button>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Sad Face</h6>
+                        <button class="btn btn-sm btn-primary" type="button"
+                                v-on:click="display_image(4)">Go
+                        </button>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Clear Display</h6>
+                        <button class="btn btn-sm btn-primary" type="button"
+                                v-on:click="display_image(5)">Go
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+                <h2 class="h5 mb-4">Scroll Text</h2>
+                <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <button class="btn btn-sm btn-primary" type="button" v-on:click="display_image">Update</button>
+                        <h6>Text:</h6>
+                        <input type="text" max="70" v-model="scroll_string"/>
+                        <button class="btn btn-sm btn-primary" type="button"
+                                v-on:click="scroll_text()">Go
+                        </button>
+
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Clear Display</h6>
+                        <button class="btn btn-sm btn-primary" type="button"
+                                v-on:click="display_image(5)">Go
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -227,6 +274,7 @@
         el: "#tello-svc",
         delimiters: ["[[", "]]"],
         data: {
+            scroll_string: '',
             top_led_red: 64,
             top_led_green: 64,
             top_led_blue: 64,
@@ -247,19 +295,48 @@
             this.timer = setInterval(this.refresh_tello_status, 5000);
         },
         methods: {
-            display_image: function() {
-                console.log("display image");
-                axios.post('/display-image', {
-                    image_string: this.image_string
+            scroll_text: function() {
+                console.log("scroll: " + this.scroll_string);
+                axios.post('/scroll-text', {
+                    scroll_text: this.scroll_string
                 })
-                .then(response => {
-                    console.log(response.data);
-                })
-                .catch(error => {
-                    console.log(error);
-                });
+                    .then(response => {
+                        console.log(response.data);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+
             },
-            set_top_led: function() {
+            display_image: function (param) {
+                console.log("display image: " + param);
+                axios.post('/display-image', {
+                    image_string: this.image_string,
+                    image_index: param
+                })
+                    .then(response => {
+                        console.log(response.data);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+            clear_top_led: function() {
+                console.log("clear top led");
+                axios.post('/set-top-led', {
+                    red: 0,
+                    green: 0,
+                    blue: 0
+                })
+                    .then(response => {
+                        console.log(response.data);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+
+            },
+            set_top_led: function () {
                 console.log("set top led");
                 console.log(this.top_led_red, this.top_led_green, this.top_led_blue);
                 axios.post('/set-top-led', {
@@ -267,13 +344,12 @@
                     green: this.top_led_green,
                     blue: this.top_led_blue
                 })
-                .then(response => {
-                    console.log(response.data);
-                })
-                .catch(error => {
-                    console.log(error);
-                });
-
+                    .then(response => {
+                        console.log(response.data);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
 
             },
             toggle_tello_model: function () {
@@ -305,7 +381,7 @@
             },
             execute_command: function (cmd) {
                 console.log('execute: ' + cmd);
-                if( cmd == 'dummy') {
+                if (cmd == 'dummy') {
                     return;
                 }
                 const url = '/execute?command=' + cmd;

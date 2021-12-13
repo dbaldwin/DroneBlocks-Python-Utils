@@ -172,14 +172,42 @@ def display_image():
     try:
         if request.json:
             image_string = request.json['image_string']
+            image_index = int(request.json['image_index'])
             if tello_reference:
-                print(image_string)
-                tello_reference.display_image(image_string)
+                if image_index == 1:
+                    print(image_string)
+                    tello_reference.display_image(image_string)
+                elif image_index == 2:
+                    tello_reference.display_heart()
+                elif image_index == 3:
+                    tello_reference.display_smile()
+                elif image_index == 4:
+                    tello_reference.display_sad()
+                elif image_index == 5:
+                    tello_reference.clear_display()
+
     except:
         command_status_message = "Could not display image string"
         command_success = False
 
     return dict(command_success=command_success, command_status_message=command_status_message)
+
+@post('/scroll-text')
+def scroll_text():
+    global default_distance
+    global command_status_message,command_success
+    print("scroll text")
+    try:
+        if request.json:
+            scroll_string = request.json['scroll_text']
+            if tello_reference:
+                tello_reference.scroll_string(scroll_string)
+    except:
+        command_status_message = "Could not display image string"
+        command_success = False
+
+    return dict(command_success=command_success, command_status_message=command_status_message)
+
 
 @route('/toggle-model')
 @view('index')
