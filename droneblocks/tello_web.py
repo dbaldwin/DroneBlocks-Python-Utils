@@ -11,6 +11,7 @@ web_stop_event = None
 tello_model = 'Tello'
 
 default_distance=30
+default_speed = 50
 
 tello_state = {
     'height': 30,
@@ -21,7 +22,8 @@ tello_state = {
     'temp': 'Unknown',
     'flight_time': 'Unknown',
     'tello_model': tello_model,
-    'fly_distance': default_distance
+    'fly_distance': default_distance,
+    'flying_speed': default_speed
 
 }
 
@@ -83,6 +85,53 @@ def _execute_command(request):
 
     return dict(command_success=command_success, command_status_message=command_status_message)
 
+"""
+def send_rc_control(self, left_right_velocity: int, forward_backward_velocity: int, 
+                    up_down_velocity: int,
+                    yaw_velocity: int):
+
+"""
+
+def _execute_rc_command(request):
+    global command_status_message, command_success
+    try:
+        command = request.query.command or None
+        print(command)
+        lr_vel = 0
+        fb_vel = 0
+        ud_vel = 0
+        yv = 0
+        if tello_reference:
+            if command == 'move-up':
+                ud_vel = default_speed
+            elif command == 'move-down':
+                ud_vel = -default_speed
+            elif command == 'move-right':
+                lr_vel = default_speed
+            elif command == 'move-left':
+                lr_vel = -default_speed
+            elif command == 'cw':
+                yv = default_speed
+            elif command == 'ccw':
+                yv = -default_speed
+            elif command == 'move-forward':
+                fb_vel = default_speed
+            elif command == 'move-back':
+                fb_vel = -default_speed
+
+            tello_reference.send_rc_control(lr_vel, fb_vel, ud_vel, yv)
+
+        command = friendly_command_name[command]
+        command_status_message=f'{command} completed'
+        command_success = True
+        print(command)
+    except:
+        command_success = False
+        command_status_message=f'{command} Command Failed'
+
+    return dict(command_success=command_success, command_status_message=command_status_message)
+
+
 def _refresh_tello_state():
     """
     {'mid': -2, 'x': -200, 'y': -200, 'z': -200, 'mpry': '0,0,0', 'pitch': 0,
@@ -105,6 +154,7 @@ def _refresh_tello_state():
     tello_state['tello_model'] = tello_model
     tello_state['command_status_message'] = command_status_message
     tello_state['command_success'] = command_success
+    tello_state['flying_speed'] = default_speed
 
 
 # route will retrieve static assets
@@ -145,6 +195,23 @@ def update_distance():
         command_success = False
 
     return dict(tello_state=tello_state)
+
+@post('/update-speed' )
+def update_speed():
+    global default_speed
+    global command_status_message,command_success
+
+    try:
+        if request.forms:
+            if 'speedvalue' in request.json:
+                default_speed = int(request.json['speedvalue'])
+        command_status_message = "Flying Speed Updated"
+        command_success = True
+    except:
+        command_status_message = "Could not update default Flying distance"
+        command_success = False
+
+    return dict(command_success=command_success, command_status_message=command_status_message)
 
 @post('/set-top-led')
 def set_top_led():
@@ -231,6 +298,26 @@ def toggle_model():
 @route('/execute')
 def execute():
     return _execute_command(request)
+
+@route('/execute-rc')
+def execute_rc():
+    return _execute_rc_command(request)
+
+@route('/stop-flying')
+def stop_flying():
+    global command_status_message,command_success
+    try:
+        print("stop flying")
+        if tello_reference is not None and tello_reference.is_flying:
+            tello_reference.send_rc_control(0, 0, 0, 0)
+        command_status_message = 'Hover'
+        command_success = True
+    except Exception as exc:
+        command_success = False
+        command_status_message='Hover Failed'
+        print(f"stop event exception: {exc} ")
+
+    return dict(command_success=command_success, command_status_message=command_status_message)
 
 @route('/land')
 # @view('landing')
