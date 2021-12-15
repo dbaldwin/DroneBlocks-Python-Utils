@@ -25,10 +25,13 @@
                 <label class="custom-control-label" for="customSwitch2">[[tello_model_label]]</label>
             </div>
 
-            <p v-if="command_success" class="text-success mb-0">
-                [[command_status_message]]</p>
-            <p v-else class="text-danger mb-0">
-                [[command_status_message]]</p>
+            <div class="w-25">
+                <p v-if="command_success" class="text-success mb-0">
+                    [[command_status_message]]</p>
+                <p v-else class="text-danger mb-0">
+                    [[command_status_message]]</p>
+
+            </div>
 
         </div>
 
@@ -45,6 +48,7 @@
         </div>
     </div>
 
+    <!--   JoyStick Controller -->
     <div class="container z-2">
         <div class="row my-5 justify-content-center text-center">
             <div class="col-lg-8">
@@ -93,10 +97,11 @@
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <h6>Flying Speed</h6>
-                    <input type="number" min="0" max="100"  v-model="flying_speed"/>
+                    <input type="number" min="0" max="100" v-model="flying_speed"/>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <button class="btn btn-sm btn-primary" type="button" v-on:click="update_flying_speed">Update</button>
+                    <button class="btn btn-sm btn-primary" type="button" v-on:click="update_flying_speed">Update
+                    </button>
                 </li>
             </ul>
         </div>
@@ -162,10 +167,15 @@
             <h2 class="h5 mb-4">Operations</h2>
             <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
                 <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Stop & Hover</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="stop_flying()">STOP
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
                     <h6>TakeOff</h6>
                     <button class="btn btn-sm btn-primary" type="button"
-                            v-on:click="execute_command('takeoff')"
-                            data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
+                            v-on:click="execute_command('takeoff')">Go
                     </button>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center border-0">
@@ -184,6 +194,35 @@
                     <h6>Motor Off</h6>
                     <button class="btn btn-sm btn-primary" type="button"
                             v-on:click="execute_command('motor-off')">Go
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+            <h2 class="h5 mb-4">Operations</h2>
+            <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Flip Left</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('flip-left')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Flip Right</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('flip-right')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Flip Forward</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('flip-forward')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Flip Backward</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('flip-back')">Go
                     </button>
                 </li>
             </ul>
@@ -301,8 +340,11 @@
                 <h2 class="h5 mb-4">Mission Pads</h2>
                 <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <h6>Red:</h6>
-                        <input type="number" min="0" max="255" name="tt-top-led-red" v-model="top_led_red"/>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="customSwitch3"
+                                   v-on:click="toggle_mission_pad()">
+                            <label class="custom-control-label" for="customSwitch3">[[mission_pad_label]]</label>
+                        </div>
 
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -352,6 +394,7 @@
             use_tello_talent: false, // false=Tello true=Tello Talent
             tello_model_label: 'Tello',
             image_string: '',
+            mission_pad_label: 'Disabled'
         },
         created() {
             this.refresh_tello_status();
@@ -359,6 +402,27 @@
             this.timer = setInterval(this.refresh_tello_status, 5000);
         },
         methods: {
+            toggle_mission_pad: function() {
+                let url = '';
+                if( this.mission_pad_label == 'Disabled') {
+                    this.mission_pad_label = 'Enabled';
+                    url = '/enable-mission-pads';
+                }  else {
+                    this.mission_pad_label = 'Disabled';
+                    url = '/disable-mission-pads';
+                }
+
+                console.log('url: ' + url);
+                axios.get(url)
+                    .then(response => {
+                        console.log(response.data);
+                        this.command_success = response.data['command_success'];
+                        this.command_status_message = response.data['command_status_message'];
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
             stop_flying: function () {
                 console.log("STOP FLYING");
                 const url = '/stop-flying';
@@ -453,6 +517,7 @@
                 } else {
                     this.use_tello_talent = false;
                     this.tello_model_label = 'Tello';
+                    this.mission_pad_label = 'Disabled';
                 }
             },
             refresh_tello_status: function () {

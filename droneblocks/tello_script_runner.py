@@ -46,7 +46,8 @@ IMAGE_HEIGHT = None
 
 TELLO_VIDEO_WINDOW_NAME = "User Tello Video"
 ORIGINAL_VIDEO_WINDOW_NAME = "Raw Tello Video"
-KEYBOARD_CMD_WINDOW_NAME = "Keyboard Cmds"
+# TODO deprecate the keyboard cmd window
+# KEYBOARD_CMD_WINDOW_NAME = "Keyboard Cmds"
 
 ui_elements = []
 
@@ -209,7 +210,8 @@ def _display_text(image, text, bat_left, speed_param, speed_x_param, speed_y_par
         cv2.putText(image, f"H: {height_param}", (int(image.shape[1] * 0.75), 240), cv2.FONT_HERSHEY_SIMPLEX, 1,
                     (255, 0, 0), 2, cv2.LINE_AA)
 
-        cv2.imshow(KEYBOARD_CMD_WINDOW_NAME, image)
+        # TODO deprecate the keyboard cmd window
+        # cv2.imshow(KEYBOARD_CMD_WINDOW_NAME, image)
         key = cv2.waitKey(150) & 0xff
 
     return key
@@ -693,8 +695,9 @@ def main():
         TELLO_LOGGER = logging.getLogger('djitellopy')
         TELLO_LOGGER.setLevel(logging.ERROR)
 
-        cv2.namedWindow(KEYBOARD_CMD_WINDOW_NAME, cv2.WINDOW_NORMAL)
-        cv2.setMouseCallback(KEYBOARD_CMD_WINDOW_NAME, _mouse_events)
+        # TODO deprecate the keyboard cmd window
+        # cv2.namedWindow(KEYBOARD_CMD_WINDOW_NAME, cv2.WINDOW_NORMAL)
+        # cv2.setMouseCallback(KEYBOARD_CMD_WINDOW_NAME, _mouse_events)
 
         if display_video:
             cv2.namedWindow(TELLO_VIDEO_WINDOW_NAME, cv2.WINDOW_NORMAL)
@@ -702,13 +705,13 @@ def main():
         if show_original_frame:
             cv2.namedWindow(ORIGINAL_VIDEO_WINDOW_NAME, cv2.WINDOW_NORMAL)
             cv2.moveWindow(ORIGINAL_VIDEO_WINDOW_NAME, 200, 100)
-            cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 450, 410)
+            # cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 450, 410)
             if display_video:
                 cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200 + IMAGE_WIDTH, 100)
         else:
             if display_video:
                 cv2.moveWindow(TELLO_VIDEO_WINDOW_NAME, 200, 100)
-            cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 200 + IMAGE_WIDTH, 100)
+            # cv2.moveWindow(KEYBOARD_CMD_WINDOW_NAME, 200 + IMAGE_WIDTH, 100)
 
         # -----------------------  Initialize the Tello ----------------------
         tello = DroneBlocksTello()
@@ -838,7 +841,7 @@ def main():
             cv2.destroyWindow(TELLO_VIDEO_WINDOW_NAME)
         if show_original_frame:
             cv2.destroyWindow(ORIGINAL_VIDEO_WINDOW_NAME)
-        cv2.destroyWindow(KEYBOARD_CMD_WINDOW_NAME)
+        # cv2.destroyWindow(KEYBOARD_CMD_WINDOW_NAME)
         cv2.destroyAllWindows()
         shutdown_gracefully()
 
