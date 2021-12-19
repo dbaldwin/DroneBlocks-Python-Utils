@@ -20,6 +20,9 @@ default_speed = 30
 default_max_rc_control_time = 3
 current_rc_control_time = 0
 
+# when mission pad is enabled, this will update for the detected mission pad
+mission_pad_enabled = False
+
 # command history
 # keep a list of commands so we can make sure everything is being executed
 command_history = []
@@ -35,7 +38,8 @@ tello_state = {
     'tello_model': tello_model,
     'fly_distance': default_distance,
     'flying_speed': default_speed,
-    'command_history': []
+    'command_history': [],
+    'detected_mission_pad': -2
 
 }
 
@@ -197,6 +201,10 @@ def _refresh_tello_state():
             tello_state['temp'] = int((current_tello_state['temph'] + current_tello_state['templ']) / 2)
             tello_state['flight_time'] = current_tello_state['time']
             tello_state['height'] = current_tello_state['h']
+            tello_state['current_x'] = current_tello_state['x']
+            tello_state['current_y'] = current_tello_state['y']
+            tello_state['current_z'] = current_tello_state['z']
+            tello_state['detected_mission_pad'] = current_tello_state['mid']
 
     tello_state['fly_distance'] = default_distance
     tello_state['tello_model'] = tello_model
@@ -204,6 +212,7 @@ def _refresh_tello_state():
     tello_state['command_success'] = command_success
     tello_state['flying_speed'] = default_speed
     tello_state['command_history'] = command_history
+
 
 
 # route will retrieve static assets
@@ -239,36 +248,23 @@ def status_update():
     return dict(tello_state=tello_state)
 
 
-@post('/update-distance')
-def update_distance():
-    global default_distance
+@post('/update-flying-values')
+def update_flying_values():
+    global default_speed, default_distance
     global command_status_message, command_success
 
     try:
-        if request.forms:
-            if 'distancevalue' in request.forms:
-                default_distance = int(request.forms['distancevalue'])
-        _refresh_tello_state()
-    except:
-        command_status_message = "Could not update default Flying distance"
-        command_success = False
-
-    return dict(tello_state=tello_state)
-
-
-@post('/update-speed')
-def update_speed():
-    global default_speed
-    global command_status_message, command_success
-
-    try:
-        if request.forms:
+        if request.json:
+            print(request.json)
             if 'speedvalue' in request.json:
                 default_speed = int(request.json['speedvalue'])
-        command_status_message = "Flying Speed Updated"
+            if 'distancevalue' in request.forms:
+                default_distance = int(request.forms['distancevalue'])
+
+        command_status_message = "Flying Values Updated"
         command_success = True
     except:
-        command_status_message = "Could not update default Flying distance"
+        command_status_message = "Could not update default Flying values"
         command_success = False
 
     return dict(command_success=command_success, command_status_message=command_status_message)
@@ -387,12 +383,13 @@ def stop_flying():
 
 @route('/enable-mission-pads')
 def enable_mission_pads():
-    global command_status_message, command_success
+    global command_status_message, command_success, mission_pad_enabled
     try:
         print("enable mission pads")
         if tello_reference is not None:
             tello_reference.enable_mission_pads()  # default is direction 0, or down
             tello_reference.set_mission_pad_detection_direction(0)
+            mission_pad_enabled = True
             command_history.append('enable mission pads')
         command_status_message = 'Enable Mission Pads'
         command_success = True
@@ -405,12 +402,13 @@ def enable_mission_pads():
 
 @route('/disable-mission-pads')
 def disable_mission_pads():
-    global command_status_message, command_success
+    global command_status_message, command_success, mission_pad_enabled
     try:
         print("enable mission pads")
         if tello_reference is not None:
             tello_reference.disable_mission_pads()  # default is direction 0, or down
             command_history.append('disable mission pads')
+            mission_pad_enabled = False
         command_status_message = 'Disable Mission Pads'
         command_success = True
     except Exception as exc:

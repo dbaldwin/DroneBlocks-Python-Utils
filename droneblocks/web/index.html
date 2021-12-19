@@ -100,69 +100,74 @@
                     <input type="number" min="0" max="100" v-model="flying_speed"/>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <button class="btn btn-sm btn-primary" type="button" v-on:click="update_flying_speed">Update
+                    <h6>Fly Distance:</h6>
+                    <input type="number" min="0" max="100" v-model="fly_distance"/>
+                </li>
+
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-primary" type="button" v-on:click="update_flying_values">Update
                     </button>
                 </li>
             </ul>
         </div>
-                <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
-                    <h2 class="h5 mb-4">Operations</h2>
-                    <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
-                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                            <h6>Fly Up</h6>
-                            <button class="btn btn-sm btn-primary" type="button" v-on:click="execute_command('move-up')"
-                                    data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
-                            </button>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                            <h6>Fly Down</h6>
-                            <button class="btn btn-sm btn-primary" type="button"
-                                    v-on:click="execute_command('move-down')">Go
-                            </button>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                            <h6>Fly Left</h6>
-                            <button class="btn btn-sm btn-primary" type="button"
-                                    v-on:click="execute_command('move-left')">Go
-                            </button>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                            <h6>Fly Right</h6>
-                            <button class="btn btn-sm btn-primary" type="button"
-                                    v-on:click="execute_command('move-right')">Go
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
-                    <h2 class="h5 mb-4">Operations</h2>
-                    <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
-                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                            <h6>Fly Forward</h6>
-                            <button class="btn btn-sm btn-primary" type="button"
-                                    v-on:click="execute_command('move-forward')">Go
-                            </button>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                            <h6>Fly Backwards</h6>
-                            <button class="btn btn-sm btn-primary" type="button"
-                                    v-on:click="execute_command('move-back')">Go
-                            </button>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                            <h6>Rotate Clockwise</h6>
-                            <button class="btn btn-sm btn-primary" type="button"
-                                    v-on:click="execute_command('cw')">Go
-                            </button>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                            <h6>Rotate Counter Clockwise</h6>
-                            <button class="btn btn-sm btn-primary" type="button"
-                                    v-on:click="execute_command('ccw')">Go
-                            </button>
-                        </li>
-                    </ul>
-                </div>
+        <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+            <h2 class="h5 mb-4">Operations (Fixed Distance)</h2>
+            <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Up</h6>
+                    <button class="btn btn-sm btn-primary" type="button" v-on:click="execute_command('move-up')"
+                            data-toggle="tooltip" data-placement="right" title="Send Fly Up Command 30 cms">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Down</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-down')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Left</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-left')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Right</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-right')">Go
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+            <h2 class="h5 mb-4">Operations (Fixed Distance)</h2>
+            <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Forward</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-forward')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Fly Backwards</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('move-back')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Rotate Clockwise</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('cw')">Go
+                    </button>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                    <h6>Rotate Counter Clockwise</h6>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            v-on:click="execute_command('ccw')">Go
+                    </button>
+                </li>
+            </ul>
+        </div>
         <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
             <h2 class="h5 mb-4">Operations</h2>
             <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
@@ -347,26 +352,42 @@
                         </div>
 
                     </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <h6>Green:</h6>
-                        <input type="number" min="0" max="255" name="tt-top-led-green" v-model="top_led_blue"/>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Detected Mission Pad:</h6> [[detected_mission_pad]]
                     </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <h6>Blue:</h6>
-                        <input type="number" min="0" max="255" name="tt-top-led-blue" v-model="top_led_green"/>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>X:</h6> [[current_x]]
                     </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <button class="btn btn-sm btn-primary" type="button" v-on:click="set_top_led">Update</button>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Y:</h6>[[current_y]]
                     </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <button class="btn btn-sm btn-primary" type="button" v-on:click="clear_top_led">Clear</button>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Z:</h6>[[current_z]]
                     </li>
 
                 </ul>
             </div>
-        </div>
 
+            <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
+                <h2 class="h5 mb-4">Mission Pads</h2>
+                <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>X:</h6> [[current_x]]
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Y:</h6>[[current_y]]
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Z:</h6>[[current_z]]
+                    </li>
+                </ul>
+            </div>
+
+        </div>
     </div>
+
+</div>
 </div>
 
 <script type='text/javascript' src='/static/js/axios.min.js'></script>
@@ -379,6 +400,7 @@
         el: "#tello-svc",
         delimiters: ["[[", "]]"],
         data: {
+            detected_mission_pad: -2,
             scroll_string: '',
             top_led_red: 64,
             top_led_green: 64,
@@ -387,27 +409,30 @@
             height: 0,
             temp: 0,
             flight_time: 0,
-            fly_distance: 0,
-            flying_speed: 0,
+            fly_distance: null,
+            flying_speed: null,
             command_success: false,
             command_status_message: '',
             use_tello_talent: false, // false=Tello true=Tello Talent
             tello_model_label: 'Tello',
             image_string: '',
-            mission_pad_label: 'Disabled'
+            mission_pad_label: 'Disabled',
+            current_x: -1,
+            current_y: -1,
+            current_z: -1
         },
         created() {
             this.refresh_tello_status();
             console.log("Created Vue Component")
-            this.timer = setInterval(this.refresh_tello_status, 5000);
+            this.timer = setInterval(this.refresh_tello_status, 1000);
         },
         methods: {
-            toggle_mission_pad: function() {
+            toggle_mission_pad: function () {
                 let url = '';
-                if( this.mission_pad_label == 'Disabled') {
+                if (this.mission_pad_label == 'Disabled') {
                     this.mission_pad_label = 'Enabled';
                     url = '/enable-mission-pads';
-                }  else {
+                } else {
                     this.mission_pad_label = 'Disabled';
                     url = '/disable-mission-pads';
                 }
@@ -464,11 +489,12 @@
                         console.log(error);
                     });
             },
-            update_flying_speed: function () {
+            update_flying_values: function () {
                 console.log("update flying speed: " + this.flying_speed);
 
-                axios.post('/update-speed', {
+                axios.post('/update-flying-values', {
                     speedvalue: this.flying_speed,
+                    distancevalue: this.fly_distance
                 })
                     .then(response => {
                         console.log(response.data);
@@ -532,8 +558,17 @@
                         this.temp = tello_state['temp'];
                         this.flight_time = tello_state['flight_time'];
                         this.command_status_message = '';
-                        this.fly_distance = tello_state['fly_distance']
-                        this.flying_speed = tello_state['flying_speed']
+                        if (this.fly_distance == null) {
+                            this.fly_distance = tello_state['fly_distance'];
+                        }
+                        if (this.flying_speed == null) {
+                            this.flying_speed = tello_state['flying_speed'];
+                        }
+                        this.current_x = tello_state['current_x'];
+                        this.current_y = tello_state['current_y'];
+                        this.current_z = tello_state['current_z'];
+                        this.detected_mission_pad=tello_state['detected_mission_pad'];
+
                     })
                     .catch(error => {
                         console.log(error);
