@@ -79,6 +79,67 @@
         </div>
     </div>
 
+    <!--   BUTTON Controls -->
+    <div class="container mb-3">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="mb-3">
+                    <h2 class="h5">TakeOff and Land</h2>
+                </div>
+
+                <!--Buttons-->
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="stop_flying()">Stop & Hover
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_land()">Land</button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('takeoff')">Take
+                    Off
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('motor-on')">Motor
+                    On
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('motor-off')">
+                    Motor Off
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="mb-3">
+                    <h2 class="h5">Fixed Distance Operations</h2>
+                </div>
+
+                <!--Buttons-->
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('move-up')">Fly
+                    Up
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('move-down')">Fly
+                    Down
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('move-forward')">
+                    Fly Forward
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('move-back')">Fly
+                    Backward
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('move-left')">Fly
+                    Left
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('move-right')">Fly
+                    Right
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('cw')">Rotate CW
+                </button>
+                <button class="btn btn-primary mr-3 btn-sm" type="button" v-on:click="execute_command('ccw')">Rotate
+                    CCW
+                </button>
+            </div>
+        </div>
+    </div>
+
+
     <div class="row mt-5 ml-4 mr-4 justify-content-around">
         <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
             <h2 class="h5 mb-4">Status</h2>
@@ -567,7 +628,7 @@
                         this.current_x = tello_state['current_x'];
                         this.current_y = tello_state['current_y'];
                         this.current_z = tello_state['current_z'];
-                        this.detected_mission_pad=tello_state['detected_mission_pad'];
+                        this.detected_mission_pad = tello_state['detected_mission_pad'];
 
                     })
                     .catch(error => {

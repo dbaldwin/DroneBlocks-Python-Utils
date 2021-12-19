@@ -1,6 +1,5 @@
 from bottle import post, route, run, request, template, TEMPLATE_PATH, view, static_file
 import pkgutil
-from droneblocks.DroneBlocksContextManager import DroneBlocksContextManager
 from droneblocks.DroneBlocksTello import DroneBlocksTello
 import argparse
 import time
@@ -465,6 +464,8 @@ def web_main(tello, stop_event=None, port=8080):
 
 
 if __name__ == '__main__':
+    from droneblocks.DroneBlocksContextManager import DroneBlocksContextManager
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action='store_true', help="Do not instantiate Tello reference")
     ap.add_argument("--web-port", required=False, default=8080, type=int,
