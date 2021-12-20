@@ -1,9 +1,9 @@
+import logging
 from bottle import post, route, run, request, template, TEMPLATE_PATH, view, static_file
 import pkgutil
 from droneblocks.DroneBlocksTello import DroneBlocksTello
 import argparse
 import time
-import threading
 
 web_root = None
 web_stop_event = None
@@ -217,7 +217,9 @@ def _refresh_tello_state():
 # route will retrieve static assets
 @route('/static/<filepath:path>')
 def server_static(filepath):
-    return static_file(filepath, root=f"{web_root}/static/")
+    path = f"{web_root}/static/"
+    print(path)
+    return static_file(filepath, root=path)
 
 
 @route('/debug/command-history')
@@ -464,8 +466,6 @@ def web_main(tello, stop_event=None, port=8080):
 
 
 if __name__ == '__main__':
-    from droneblocks.DroneBlocksContextManager import DroneBlocksContextManager
-
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action='store_true', help="Do not instantiate Tello reference")
     ap.add_argument("--web-port", required=False, default=8080, type=int,
@@ -478,5 +478,12 @@ if __name__ == '__main__':
     if dry_run:
         web_main(None, stop_event=None, port=port)
     else:
-        with DroneBlocksContextManager() as db_tello:
+        try:
+            db_tello = DroneBlocksTello()
+            db_tello.LOGGER.setLevel(logging.ERROR)
+
+            db_tello.connect()
             web_main(db_tello, stop_event=None, port=port)
+        except Exception as exc:
+            print("Exception in tello web: ")
+            print(exc)
