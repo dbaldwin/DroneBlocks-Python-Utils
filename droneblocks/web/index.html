@@ -23,7 +23,7 @@
             </a>
 
             <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="customSwitch2"
+                <input type="checkbox" class="custom-control-input" id="customSwitch2" v-model="use_tello_talent"
                        v-on:click="toggle_tello_model()">
                 <label class="custom-control-label" for="customSwitch2">[[tello_model_label]]</label>
             </div>
@@ -338,7 +338,7 @@
                 <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="customSwitch3"
+                            <input type="checkbox" class="custom-control-input" id="customSwitch3" v-model="mission_pad_enabled"
                                    v-on:click="toggle_mission_pad()">
                             <label class="custom-control-label" for="customSwitch3">[[mission_pad_label]]</label>
                         </div>
@@ -409,6 +409,7 @@
         el: "#tello-svc",
         delimiters: ["[[", "]]"],
         data: {
+            mission_pad_enabled: false,
             detected_mission_pad: -2,
             scroll_string: '',
             top_led_red: 64,
@@ -577,6 +578,17 @@
                         this.current_y = tello_state['current_y'];
                         this.current_z = tello_state['current_z'];
                         this.detected_mission_pad = tello_state['detected_mission_pad'];
+                        this.mission_pad_enabled = tello_state['mission_pad_enabled']
+                        if( this.mission_pad_enabled) {
+                            this.mission_pad_label = "Enabled";
+                        } else {
+                            this.mission_pad_label = "Disabled";
+                        }
+
+                        if(tello_state['is_rmtt_drone'] == true) {
+                            this.use_tello_talent = true;
+                            this.tello_model_label = 'Tello Talent';
+                        }
 
                     })
                     .catch(error => {

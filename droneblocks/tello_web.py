@@ -22,6 +22,9 @@ current_rc_control_time = 0
 # when mission pad is enabled, this will update for the detected mission pad
 mission_pad_enabled = False
 
+# is the drone a Tello ( i.e. SDK 2.x ) or a Robomaster Tello ( i.e. SDK 3.x )
+is_rmtt_drone = False
+
 # command history
 # keep a list of commands so we can make sure everything is being executed
 command_history = []
@@ -38,7 +41,9 @@ tello_state = {
     'fly_distance': default_distance,
     'flying_speed': default_speed,
     'command_history': [],
-    'detected_mission_pad': -2
+    'detected_mission_pad': -2,
+    'mission_pad_enabled': mission_pad_enabled,
+    'is_rmtt_drone': is_rmtt_drone
 
 }
 
@@ -98,6 +103,10 @@ def _execute_command(request):
         if tello_reference and not tello_reference.is_flying:
             if command == 'takeoff':
                 tello_reference.takeoff()
+            elif command == 'motor-on':
+                tello_reference.turn_motor_on()
+            elif command == 'motor-off':
+                tello_reference.turn_motor_off()
         else:
             if tello_reference and tello_reference.is_flying:
                 if command == 'move-up':
@@ -116,10 +125,6 @@ def _execute_command(request):
                     tello_reference.move_forward(default_distance)
                 elif command == 'move-back':
                     tello_reference.move_back(default_distance)
-                elif command == 'motor-on':
-                    tello_reference.turn_motor_on()
-                elif command == 'motor-off':
-                    tello_reference.turn_motor_off()
                 elif command == 'flip-left':
                     tello_reference.flip_left()
                 elif command == 'flip-right':
@@ -193,17 +198,29 @@ def _refresh_tello_state():
     :return:
     :rtype:
     """
+    global mission_pad_enabled, is_rmtt_drone
     if tello_reference:
         current_tello_state = tello_reference.get_current_state()
-        if tello_state:
-            tello_state['battery_level'] = current_tello_state['bat']
-            tello_state['temp'] = int((current_tello_state['temph'] + current_tello_state['templ']) / 2)
-            tello_state['flight_time'] = current_tello_state['time']
-            tello_state['height'] = current_tello_state['h']
-            tello_state['current_x'] = current_tello_state['x']
-            tello_state['current_y'] = current_tello_state['y']
-            tello_state['current_z'] = current_tello_state['z']
-            tello_state['detected_mission_pad'] = current_tello_state['mid']
+        tello_state['battery_level'] = current_tello_state['bat']
+        tello_state['temp'] = int((current_tello_state['temph'] + current_tello_state['templ']) / 2)
+        tello_state['flight_time'] = current_tello_state['time']
+        tello_state['height'] = current_tello_state['h']
+        tello_state['current_x'] = current_tello_state['x'] if 'x' in current_tello_state else -1
+        tello_state['current_y'] = current_tello_state['y'] if 'y' in current_tello_state else -1
+        tello_state['current_z'] = current_tello_state['z'] if 'z' in current_tello_state else -1
+        tello_state['detected_mission_pad'] = current_tello_state['mid'] if 'mid' in current_tello_state else -2
+        if tello_state['detected_mission_pad'] != -2:
+            # thenç the mission pads must have been enabled outside the web api
+            mission_pad_enabled = True
+
+        try:
+            if int(tello_reference.query_sdk_version()) >= 30:
+                is_rmtt_drone = True
+                tello_state['is_rmtt_drone'] = is_rmtt_drone
+        except:
+            is_rmtt_drone = False
+            tello_state['is_rmtt_drone'] = is_rmtt_drone
+
 
     tello_state['fly_distance'] = default_distance
     tello_state['tello_model'] = tello_model
@@ -211,6 +228,7 @@ def _refresh_tello_state():
     tello_state['command_success'] = command_success
     tello_state['flying_speed'] = default_speed
     tello_state['command_history'] = command_history
+    tello_state['mission_pad_enabled'] = mission_pad_enabled
 
 
 

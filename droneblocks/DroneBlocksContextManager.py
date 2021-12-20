@@ -43,6 +43,15 @@ class DroneBlocksContextManager():
 
         self.db_tello.end()
 
+        try:
+            # if the drone does not support the sdk
+            # version call, then the return is
+            # an error message not a number as a string
+            # so just let the except block eat it
+            if int(self.db_tello.query_sdk_version()) >= 30:
+                self.db_tello.clear_everything()
+        except:
+            pass
 
 if __name__ == '__main__':
     # example usage turning cooling motor on
