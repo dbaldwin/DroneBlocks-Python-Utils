@@ -442,11 +442,12 @@ def disable_mission_pads():
 def land():
     global command_status_message, command_success
     try:
-        print("stop event set")
+        print("LAND")
         if tello_reference is not None and tello_reference.is_flying:
             tello_reference.land()
             command_history.append('land')
         if web_stop_event is not None:
+            print("web stop event set.....")
             web_stop_event.set()
         command_status_message = 'Land Initiated'
         command_success = True
@@ -454,6 +455,9 @@ def land():
         command_success = False
         command_status_message = 'Land Command Failed'
         print(f"stop event exception: {exc} ")
+        if web_stop_event is not None:
+            print("web stop event set.....")
+            web_stop_event.set()
 
     return dict(command_success=command_success, command_status_message=command_status_message)
 
