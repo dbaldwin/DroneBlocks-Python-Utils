@@ -402,7 +402,7 @@ def main():
             # there are use cases where you might not want to do anything
             # but run the tello-web application.
             # to provide some breathing room, sleep this loop for a short time
-            time.sleep(0.1)
+            time.sleep(0.2)
             if frame_read is None and tello is not None and show_original_frame:
                 try:
                     frame_read = tello.get_frame_read()
