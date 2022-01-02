@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<!--    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">-->
-<!--    <meta http-equiv="Pragma" content="no-cache">-->
-<!--    <meta http-equiv="Expires" content="0">-->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>DroneBlocks Tello Web</title>
 
     <link href="/static/css/neumorphism.css" rel="stylesheet"/>
@@ -269,16 +269,39 @@
                 <h2 class="h5 mb-4">Display Image</h2>
                 <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <h6>Image String:</h6>
-                        <input type="text" max="64" v-model="image_string"/>
+                        <h6>Brightness</h6>
+                        <input type="number" min="0" max="255" v-model="display_brightness"/>
+                        <button class="btn btn-sm btn-primary" type="button" v-on:click="update_brightness">Update
+                        </button>
 
                     </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <h6>Image String</h6>
-                        <button class="btn btn-sm btn-primary" type="button"
-                                v-on:click="display_image(1)">Go
-                        </button>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Display Color</h6>
+
+                    <fieldset>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="displayColorRadios" id="displayColorRadios1" value="p" v-model="display_color" checked>
+                        <label class="form-check-label" for="displayColorRadios1">
+                          Purple
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="displayColorRadios" id="displayColorRadios2" value="r" v-model="display_color">
+                        <label class="form-check-label" for="displayColorRadios2">
+                          Red
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="displayColorRadios" id="displayColorRadios3" value="b" v-model="display_color">
+                        <label class="form-check-label" for="displayColorRadios3">
+                          Blue
+                        </label>
+                      </div>
+                    <!-- End of Radio -->
+                </fieldset>
                     </li>
+
                     <li class="list-group-item d-flex justify-content-between align-items-center border-0">
                         <h6>Heart</h6>
                         <button class="btn btn-sm btn-primary" type="button"
@@ -314,13 +337,25 @@
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <button class="btn btn-sm btn-primary" type="button"
-                                v-on:click="scroll_text(1)">Left
+                                v-on:click="scroll_text(1)">Scroll Left
                         </button>
                         <button class="btn btn-sm btn-primary" type="button"
-                                v-on:click="scroll_text(2)">Up
+                                v-on:click="scroll_text(2)">Scroll Up
                         </button>
 
                     </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Image String:</h6>
+                        <input type="text" max="64" v-model="image_string"/>
+
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <h6>Image String</h6>
+                        <button class="btn btn-sm btn-primary" type="button"
+                                v-on:click="display_image(1)">Update Image
+                        </button>
+                    </li>
+
 
                     <li class="list-group-item d-flex justify-content-between align-items-center border-0">
                         <h6>Clear Display</h6>
@@ -338,7 +373,8 @@
                 <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="customSwitch3" v-model="mission_pad_enabled"
+                            <input type="checkbox" class="custom-control-input" id="customSwitch3"
+                                   v-model="mission_pad_enabled"
                                    v-on:click="toggle_mission_pad()">
                             <label class="custom-control-label" for="customSwitch3">[[mission_pad_label]]</label>
                         </div>
@@ -358,21 +394,6 @@
                         <h6>Z:</h6>[[current_z]]
                     </li>
 
-                </ul>
-            </div>
-
-            <div class="col-lg-3 col-md-4 mb-5 mb-lg-0">
-                <h2 class="h5 mb-4">Mission Pads</h2>
-                <ul class="list-group list-group-flush bg-primary shadow-soft rounded border border-light">
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <h6>X:</h6> [[current_x]]
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <h6>Y:</h6>[[current_y]]
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <h6>Z:</h6>[[current_z]]
-                    </li>
                 </ul>
             </div>
 
@@ -409,6 +430,8 @@
         el: "#tello-svc",
         delimiters: ["[[", "]]"],
         data: {
+            display_color: 'p',
+            display_brightness: 32,
             mission_pad_enabled: false,
             detected_mission_pad: -2,
             scroll_string: '',
@@ -476,7 +499,9 @@
                 console.log("scroll: " + this.scroll_string);
                 axios.post('/scroll-text', {
                     scroll_text: this.scroll_string,
-                    scroll_dir: param  //1-left, 2-up
+                    scroll_dir: param,  //1-left, 2-up
+                    display_color: this.display_color
+
                 })
                     .then(response => {
                         console.log(response.data);
@@ -490,7 +515,8 @@
                 console.log("display image: " + param);
                 axios.post('/display-image', {
                     image_string: this.image_string,
-                    image_index: param
+                    image_index: param,
+                    display_color: this.display_color
                 })
                     .then(response => {
                         console.log(response.data);
@@ -498,6 +524,21 @@
                     .catch(error => {
                         console.log(error);
                     });
+            },
+            update_brightness: function () {
+                console.log("update brigtness: " + this.display_brightness);
+
+                axios.post('/update-brightness', {
+                    brightnessvalue: this.display_brightness
+                })
+                    .then(response => {
+                        console.log(response.data);
+                        this.refresh_tello_status()
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+
             },
             update_flying_values: function () {
                 console.log("update flying speed: " + this.flying_speed);
@@ -557,7 +598,8 @@
                 }
             },
             refresh_tello_status: function () {
-                console.log("Refresh Tello Status")
+                console.log("Refresh Tello Status");
+                console.log(this.display_color);
                 axios.get('/status-update')
                     .then(response => {
                         console.log(response.data);
@@ -579,13 +621,13 @@
                         this.current_z = tello_state['current_z'];
                         this.detected_mission_pad = tello_state['detected_mission_pad'];
                         this.mission_pad_enabled = tello_state['mission_pad_enabled']
-                        if( this.mission_pad_enabled) {
+                        if (this.mission_pad_enabled) {
                             this.mission_pad_label = "Enabled";
                         } else {
                             this.mission_pad_label = "Disabled";
                         }
 
-                        if(tello_state['is_rmtt_drone'] == true) {
+                        if (tello_state['is_rmtt_drone'] == true) {
                             this.use_tello_talent = true;
                             this.tello_model_label = 'Tello Talent';
                         }

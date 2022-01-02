@@ -138,6 +138,26 @@ class DroneBlocksTello(Tello):
 
         return self.send_command_with_return(f"EXT mled {scroll_dir} {display_color} {rate} {message}")
 
+    # it appears that the EXT tof? command returns: unknown command: keepalive
+    # along with the value.  Seems like a tello bug.
+    # to compensate for this bug I am going to return the last known good
+    # value that was read from the tello.
+    def get_controller_tof(self) -> str:
+        global last_known_good_tof
+        mm_value = self.send_command_with_return("EXT tof?")
+        if mm_value is not None and mm_value == "unknown command: keepalive":
+            mm_value = self.send_command_with_return("EXT tof?")
+        # 10 mm = 1 cm
+        print(f"send_command_with_return Rtn Value: {mm_value}")
+
+        try:
+            mm_value = mm_value.replace("tof ", '')
+            cm_value = int(int(mm_value)/10)
+        except:
+            cm_value = -1
+
+        return cm_value
+
     # ----------------  fly_xyz api to match the droneblocks simulator tello
     def _inches_to_cm(self, inch_value):
         return inch_value * 2.54

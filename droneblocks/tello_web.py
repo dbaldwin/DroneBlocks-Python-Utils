@@ -12,6 +12,11 @@ tello_model = 'Tello'
 
 default_distance = 30
 default_speed = 30
+default_brightness = 32
+# when the web app first comes up, set the brightness so the
+# ui and the device match.  There does not see to be a way to get
+# the current brightness level so we will set it
+initial_brightness_set = False
 
 # maximum number of seconds to allow a send_rc_control command
 # to execute before sending a stop.  This is a safe guard to ensure
@@ -43,7 +48,8 @@ tello_state = {
     'command_history': [],
     'detected_mission_pad': -2,
     'mission_pad_enabled': mission_pad_enabled,
-    'is_rmtt_drone': is_rmtt_drone
+    'is_rmtt_drone': is_rmtt_drone,
+    'display_brightness': default_brightness
 
 }
 
@@ -198,7 +204,7 @@ def _refresh_tello_state():
     :return:
     :rtype:
     """
-    global mission_pad_enabled, is_rmtt_drone
+    global mission_pad_enabled, is_rmtt_drone, initial_brightness_set
     if tello_reference:
         current_tello_state = tello_reference.get_current_state()
         tello_state['battery_level'] = current_tello_state['bat']
@@ -221,6 +227,9 @@ def _refresh_tello_state():
             is_rmtt_drone = False
             tello_state['is_rmtt_drone'] = is_rmtt_drone
 
+        if not initial_brightness_set:
+            initial_brightness_set = True
+            tello_reference.set_display_brightness(default_brightness)
 
     tello_state['fly_distance'] = default_distance
     tello_state['tello_model'] = tello_model
@@ -265,6 +274,28 @@ def status_update():
     except:
         pass
     return dict(tello_state=tello_state)
+
+
+@post('/update-brightness')
+def update_brightness():
+    global default_brightness
+    global command_status_message, command_success
+
+    try:
+        if request.json:
+            print(request.json)
+            if 'brightnessvalue' in request.json:
+                default_brightness = int(request.json['brightnessvalue'])
+                if tello_reference:
+                    tello_reference.set_display_brightness(default_brightness)
+
+        command_status_message = "Display Brightness Updated"
+        command_success = True
+    except:
+        command_status_message = "Could not update default Display Brightness"
+        command_success = False
+
+    return dict(command_success=command_success, command_status_message=command_status_message)
 
 
 @post('/update-flying-values')
@@ -318,16 +349,17 @@ def display_image():
         if request.json:
             image_string = request.json['image_string']
             image_index = int(request.json['image_index'])
+            display_color = request.json['display_color']
             if tello_reference:
                 if image_index == 1:
                     print(image_string)
-                    tello_reference.display_image(image_string)
+                    tello_reference.display_image(image_string, display_color=display_color)
                 elif image_index == 2:
-                    tello_reference.display_heart()
+                    tello_reference.display_heart(display_color=display_color)
                 elif image_index == 3:
-                    tello_reference.display_smile()
+                    tello_reference.display_smile(display_color=display_color)
                 elif image_index == 4:
-                    tello_reference.display_sad()
+                    tello_reference.display_sad(display_color=display_color)
                 elif image_index == 5:
                     tello_reference.clear_display()
 
@@ -347,12 +379,13 @@ def scroll_text():
         if request.json:
             scroll_string = request.json['scroll_text']
             scroll_dir = int(request.json['scroll_dir'])
+            display_color = request.json['display_color']
 
             if tello_reference:
                 if scroll_dir == 1:
-                    tello_reference.scroll_string(scroll_string, DroneBlocksTello.LEFT)
+                    tello_reference.scroll_string(scroll_string, scroll_dir=DroneBlocksTello.LEFT, display_color=display_color)
                 elif scroll_dir == 2:
-                    tello_reference.scroll_string(scroll_string, DroneBlocksTello.UP)
+                    tello_reference.scroll_string(scroll_string, scroll_dir=DroneBlocksTello.UP, display_color=display_color)
     except:
         command_status_message = "Could not display image string"
         command_success = False
