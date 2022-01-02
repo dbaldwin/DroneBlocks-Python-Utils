@@ -250,12 +250,59 @@
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <h6>Green:</h6>
-                        <input type="number" min="0" max="255" name="tt-top-led-green" v-model="top_led_blue"/>
+                        <input type="number" min="0" max="255" name="tt-top-led-green" v-model="top_led_green"/>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <h6>Blue:</h6>
-                        <input type="number" min="0" max="255" name="tt-top-led-blue" v-model="top_led_green"/>
+                        <input type="number" min="0" max="255" name="tt-top-led-blue" v-model="top_led_blue"/>
                     </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Red 2:</h6>
+                        <input type="number" min="0" max="255" name="tt-top-led-red" v-model="top_led_red2"/>
+
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Green 2:</h6>
+                        <input type="number" min="0" max="255" name="tt-top-led-green" v-model="top_led_green2"/>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Blue 2:</h6>
+                        <input type="number" min="0" max="255" name="tt-top-led-blue" v-model="top_led_blue2"/>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Mode</h6>
+                        <fieldset>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="topLedMode"
+                                       id="topLedMode1" value="color" v-model="top_led_mode" checked>
+                                <label class="form-check-label" for="topLedMode1">
+                                    Color
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="topLedMode"
+                                       id="topLedMode2" value="pulse" v-model="top_led_mode">
+                                <label class="form-check-label" for="topLedMode2">
+                                    Pulse
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="topLedMode"
+                                       id="topLedMode3" value="flash" v-model="top_led_mode">
+                                <label class="form-check-label" for="topLedMode3">
+                                    Flash
+                                </label>
+                            </div>
+                            <!-- End of Radio -->
+                        </fieldset>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <h6>Flash/Pulse Freq</h6>
+                        <input type="number" min="1" max="25" name="tt-top-led-freq" value="10" v-model="top_led_freq"/>
+
+                    </li>
+
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <button class="btn btn-sm btn-primary" type="button" v-on:click="set_top_led">Update</button>
                     </li>
@@ -279,27 +326,30 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <h6>Display Color</h6>
 
-                    <fieldset>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="displayColorRadios" id="displayColorRadios1" value="p" v-model="display_color" checked>
-                        <label class="form-check-label" for="displayColorRadios1">
-                          Purple
-                        </label>
-                      </div>
-                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="displayColorRadios" id="displayColorRadios2" value="r" v-model="display_color">
-                        <label class="form-check-label" for="displayColorRadios2">
-                          Red
-                        </label>
-                      </div>
-                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="displayColorRadios" id="displayColorRadios3" value="b" v-model="display_color">
-                        <label class="form-check-label" for="displayColorRadios3">
-                          Blue
-                        </label>
-                      </div>
-                    <!-- End of Radio -->
-                </fieldset>
+                        <fieldset>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="displayColorRadios"
+                                       id="displayColorRadios1" value="p" v-model="display_color" checked>
+                                <label class="form-check-label" for="displayColorRadios1">
+                                    Purple
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="displayColorRadios"
+                                       id="displayColorRadios2" value="r" v-model="display_color">
+                                <label class="form-check-label" for="displayColorRadios2">
+                                    Red
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="displayColorRadios"
+                                       id="displayColorRadios3" value="b" v-model="display_color">
+                                <label class="form-check-label" for="displayColorRadios3">
+                                    Blue
+                                </label>
+                            </div>
+                            <!-- End of Radio -->
+                        </fieldset>
                     </li>
 
                     <li class="list-group-item d-flex justify-content-between align-items-center border-0">
@@ -427,278 +477,294 @@
 <script>
     // Vue.config.devtools = true;
     var tello_svc = new Vue({
-        el: "#tello-svc",
-        delimiters: ["[[", "]]"],
-        data: {
-            display_color: 'p',
-            display_brightness: 32,
-            mission_pad_enabled: false,
-            detected_mission_pad: -2,
-            scroll_string: '',
-            top_led_red: 64,
-            top_led_green: 64,
-            top_led_blue: 64,
-            battery_level: -666,
-            height: 0,
-            temp: 0,
-            flight_time: 0,
-            fly_distance: null,
-            flying_speed: null,
-            command_success: false,
-            command_status_message: '',
-            use_tello_talent: false, // false=Tello true=Tello Talent
-            tello_model_label: 'Tello',
-            image_string: '',
-            mission_pad_label: 'Disabled',
-            current_x: -1,
-            current_y: -1,
-            current_z: -1
-        },
-        created() {
-            this.refresh_tello_status();
-            console.log("Created Vue Component")
-            this.timer = setInterval(this.refresh_tello_status, 1000);
-        },
-        methods: {
-            toggle_mission_pad: function () {
-                let url = '';
-                if (this.mission_pad_label == 'Disabled') {
-                    this.mission_pad_label = 'Enabled';
-                    url = '/enable-mission-pads';
-                } else {
-                    this.mission_pad_label = 'Disabled';
-                    url = '/disable-mission-pads';
+            el: "#tello-svc",
+            delimiters: ["[[", "]]"],
+            data: {
+                top_led_freq: 10, // freq is scaled by 10. actual range: 0.1-2.5, displayed range 1-25
+                top_led_mode: 'color',
+                display_color: 'p',
+                display_brightness: 32,
+                mission_pad_enabled: false,
+                detected_mission_pad: -2,
+                scroll_string: '',
+                top_led_red: 64,
+                top_led_green: 64,
+                top_led_blue: 64,
+                top_led_red2: 64,
+                top_led_green2: 64,
+                top_led_blue2: 64,
+                battery_level: -666,
+                height: 0,
+                temp: 0,
+                flight_time: 0,
+                fly_distance: null,
+                flying_speed: null,
+                command_success: false,
+                command_status_message: '',
+                use_tello_talent: false, // false=Tello true=Tello Talent
+                tello_model_label: 'Tello',
+                image_string: '',
+                mission_pad_label: 'Disabled',
+                current_x: -1,
+                current_y: -1,
+                current_z: -1
+            },
+            created() {
+                this.refresh_tello_status();
+                console.log("Created Vue Component")
+                this.timer = setInterval(this.refresh_tello_status, 1000);
+            },
+            methods: {
+                toggle_mission_pad: function () {
+                    let url = '';
+                    if (this.mission_pad_label == 'Disabled') {
+                        this.mission_pad_label = 'Enabled';
+                        url = '/enable-mission-pads';
+                    } else {
+                        this.mission_pad_label = 'Disabled';
+                        url = '/disable-mission-pads';
+                    }
+
+                    console.log('url: ' + url);
+                    axios.get(url)
+                        .then(response => {
+                            console.log(response.data);
+                            this.command_success = response.data['command_success'];
+                            this.command_status_message = response.data['command_status_message'];
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                },
+                stop_flying: function () {
+                    console.log("STOP FLYING");
+                    const url = '/stop-flying';
+                    console.log('url: ' + url);
+                    axios.get(url)
+                        .then(response => {
+                            console.log(response.data);
+                            this.command_success = response.data['command_success'];
+                            this.command_status_message = response.data['command_status_message'];
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                },
+
+                scroll_text: function (param) {
+                    console.log("scroll: " + this.scroll_string);
+                    axios.post('/scroll-text', {
+                        scroll_text: this.scroll_string,
+                        scroll_dir: param,  //1-left, 2-up
+                        display_color: this.display_color
+
+                    })
+                        .then(response => {
+                            console.log(response.data);
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+
+                },
+                display_image: function (param) {
+                    console.log("display image: " + param);
+                    axios.post('/display-image', {
+                        image_string: this.image_string,
+                        image_index: param,
+                        display_color: this.display_color
+                    })
+                        .then(response => {
+                            console.log(response.data);
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                },
+                update_brightness: function () {
+                    console.log("update brigtness: " + this.display_brightness);
+
+                    axios.post('/update-brightness', {
+                        brightnessvalue: this.display_brightness
+                    })
+                        .then(response => {
+                            console.log(response.data);
+                            this.refresh_tello_status()
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+
+                },
+                update_flying_values: function () {
+                    console.log("update flying speed: " + this.flying_speed);
+
+                    axios.post('/update-flying-values', {
+                        speedvalue: this.flying_speed,
+                        distancevalue: this.fly_distance
+                    })
+                        .then(response => {
+                            console.log(response.data);
+                            this.refresh_tello_status()
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+
+                },
+                clear_top_led: function () {
+                    console.log("clear top led");
+                    axios.post('/set-top-led', {
+                        red: 0,
+                        green: 0,
+                        blue: 0,
+                        red2: 0,
+                        green2: 0,
+                        blue2: 0,
+                        mode: 'color',
+                        freq: 1
+                    })
+                        .then(response => {
+                            console.log(response.data);
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+
+                },
+                set_top_led: function () {
+                    console.log("set top led");
+                    console.log(this.top_led_red, this.top_led_green, this.top_led_blue);
+                    axios.post('/set-top-led', {
+                        red: this.top_led_red,
+                        green: this.top_led_green,
+                        blue: this.top_led_blue,
+                        red2: this.top_led_red2,
+                        green2: this.top_led_green2,
+                        blue2: this.top_led_blue2,
+                        mode: this.top_led_mode,
+                        freq: this.top_led_freq
+                    })
+                        .then(response => {
+                            console.log(response.data);
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+
+                },
+                toggle_tello_model: function () {
+                    if (this.use_tello_talent == false) {
+                        this.use_tello_talent = true;
+                        this.tello_model_label = 'Tello Talent';
+                    } else {
+                        this.use_tello_talent = false;
+                        this.tello_model_label = 'Tello';
+                        this.mission_pad_label = 'Disabled';
+                    }
+                },
+                refresh_tello_status: function () {
+                    console.log("Refresh Tello Status");
+                    console.log(this.display_color);
+                    axios.get('/status-update')
+                        .then(response => {
+                            console.log(response.data);
+                            console.log(response.data['tello_state']);
+                            const tello_state = response.data['tello_state'];
+                            this.battery_level = tello_state['battery_level'];
+                            this.height = tello_state['height'];
+                            this.temp = tello_state['temp'];
+                            this.flight_time = tello_state['flight_time'];
+                            this.command_status_message = '';
+                            if (this.fly_distance == null) {
+                                this.fly_distance = tello_state['fly_distance'];
+                            }
+                            if (this.flying_speed == null) {
+                                this.flying_speed = tello_state['flying_speed'];
+                            }
+                            this.current_x = tello_state['current_x'];
+                            this.current_y = tello_state['current_y'];
+                            this.current_z = tello_state['current_z'];
+                            this.detected_mission_pad = tello_state['detected_mission_pad'];
+                            this.mission_pad_enabled = tello_state['mission_pad_enabled']
+                            if (this.mission_pad_enabled) {
+                                this.mission_pad_label = "Enabled";
+                            } else {
+                                this.mission_pad_label = "Disabled";
+                            }
+
+                            if (tello_state['is_rmtt_drone'] == true) {
+                                this.use_tello_talent = true;
+                                this.tello_model_label = 'Tello Talent';
+                            }
+
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                },
+                execute_rc_command: function (cmd) {
+                    console.log('execute_rc: ' + cmd);
+                    if (cmd == 'dummy') {
+                        return;
+                    }
+                    const url = '/execute-rc?command=' + cmd;
+                    console.log('url: ' + url);
+                    axios.get(url)
+                        .then(response => {
+                            console.log(response.data);
+                            this.command_success = response.data['command_success'];
+                            this.command_status_message = response.data['command_status_message'];
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                },
+                execute_command: function (cmd) {
+                    console.log('execute: ' + cmd);
+                    if (cmd == 'dummy') {
+                        return;
+                    }
+                    const url = '/execute?command=' + cmd;
+                    console.log('url: ' + url);
+                    axios.get(url)
+                        .then(response => {
+                            console.log(response.data);
+                            this.command_success = response.data['command_success'];
+                            this.command_status_message = response.data['command_status_message'];
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                },
+                execute_land: function () {
+                    const url = '/land';
+                    console.log('url: ' + url);
+                    axios.get(url)
+                        .then(response => {
+                            console.log(response.data);
+                            this.command_success = response.data['command_success'];
+                            this.command_status_message = response.data['command_status_message'];
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                },
+                refresh_data: function (param1) {
+                    console.log('refresh data function called: ' + param1)
+                    axios.get(param1)
+                        .then(response => {
+                            console.log(response.data);
+                            this.rows = response.data.rows;
+                            this.columns = response.data.columns;
+
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
                 }
-
-                console.log('url: ' + url);
-                axios.get(url)
-                    .then(response => {
-                        console.log(response.data);
-                        this.command_success = response.data['command_success'];
-                        this.command_status_message = response.data['command_status_message'];
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-            },
-            stop_flying: function () {
-                console.log("STOP FLYING");
-                const url = '/stop-flying';
-                console.log('url: ' + url);
-                axios.get(url)
-                    .then(response => {
-                        console.log(response.data);
-                        this.command_success = response.data['command_success'];
-                        this.command_status_message = response.data['command_status_message'];
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-            },
-            scroll_text: function (param) {
-                console.log("scroll: " + this.scroll_string);
-                axios.post('/scroll-text', {
-                    scroll_text: this.scroll_string,
-                    scroll_dir: param,  //1-left, 2-up
-                    display_color: this.display_color
-
-                })
-                    .then(response => {
-                        console.log(response.data);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-
-            },
-            display_image: function (param) {
-                console.log("display image: " + param);
-                axios.post('/display-image', {
-                    image_string: this.image_string,
-                    image_index: param,
-                    display_color: this.display_color
-                })
-                    .then(response => {
-                        console.log(response.data);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-            },
-            update_brightness: function () {
-                console.log("update brigtness: " + this.display_brightness);
-
-                axios.post('/update-brightness', {
-                    brightnessvalue: this.display_brightness
-                })
-                    .then(response => {
-                        console.log(response.data);
-                        this.refresh_tello_status()
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-
-            },
-            update_flying_values: function () {
-                console.log("update flying speed: " + this.flying_speed);
-
-                axios.post('/update-flying-values', {
-                    speedvalue: this.flying_speed,
-                    distancevalue: this.fly_distance
-                })
-                    .then(response => {
-                        console.log(response.data);
-                        this.refresh_tello_status()
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-
-            },
-            clear_top_led: function () {
-                console.log("clear top led");
-                axios.post('/set-top-led', {
-                    red: 0,
-                    green: 0,
-                    blue: 0
-                })
-                    .then(response => {
-                        console.log(response.data);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-
-            },
-            set_top_led: function () {
-                console.log("set top led");
-                console.log(this.top_led_red, this.top_led_green, this.top_led_blue);
-                axios.post('/set-top-led', {
-                    red: this.top_led_red,
-                    green: this.top_led_green,
-                    blue: this.top_led_blue
-                })
-                    .then(response => {
-                        console.log(response.data);
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-
-            },
-            toggle_tello_model: function () {
-                if (this.use_tello_talent == false) {
-                    this.use_tello_talent = true;
-                    this.tello_model_label = 'Tello Talent';
-                } else {
-                    this.use_tello_talent = false;
-                    this.tello_model_label = 'Tello';
-                    this.mission_pad_label = 'Disabled';
-                }
-            },
-            refresh_tello_status: function () {
-                console.log("Refresh Tello Status");
-                console.log(this.display_color);
-                axios.get('/status-update')
-                    .then(response => {
-                        console.log(response.data);
-                        console.log(response.data['tello_state']);
-                        const tello_state = response.data['tello_state'];
-                        this.battery_level = tello_state['battery_level'];
-                        this.height = tello_state['height'];
-                        this.temp = tello_state['temp'];
-                        this.flight_time = tello_state['flight_time'];
-                        this.command_status_message = '';
-                        if (this.fly_distance == null) {
-                            this.fly_distance = tello_state['fly_distance'];
-                        }
-                        if (this.flying_speed == null) {
-                            this.flying_speed = tello_state['flying_speed'];
-                        }
-                        this.current_x = tello_state['current_x'];
-                        this.current_y = tello_state['current_y'];
-                        this.current_z = tello_state['current_z'];
-                        this.detected_mission_pad = tello_state['detected_mission_pad'];
-                        this.mission_pad_enabled = tello_state['mission_pad_enabled']
-                        if (this.mission_pad_enabled) {
-                            this.mission_pad_label = "Enabled";
-                        } else {
-                            this.mission_pad_label = "Disabled";
-                        }
-
-                        if (tello_state['is_rmtt_drone'] == true) {
-                            this.use_tello_talent = true;
-                            this.tello_model_label = 'Tello Talent';
-                        }
-
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-            },
-            execute_rc_command: function (cmd) {
-                console.log('execute_rc: ' + cmd);
-                if (cmd == 'dummy') {
-                    return;
-                }
-                const url = '/execute-rc?command=' + cmd;
-                console.log('url: ' + url);
-                axios.get(url)
-                    .then(response => {
-                        console.log(response.data);
-                        this.command_success = response.data['command_success'];
-                        this.command_status_message = response.data['command_status_message'];
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-            },
-            execute_command: function (cmd) {
-                console.log('execute: ' + cmd);
-                if (cmd == 'dummy') {
-                    return;
-                }
-                const url = '/execute?command=' + cmd;
-                console.log('url: ' + url);
-                axios.get(url)
-                    .then(response => {
-                        console.log(response.data);
-                        this.command_success = response.data['command_success'];
-                        this.command_status_message = response.data['command_status_message'];
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-            },
-            execute_land: function () {
-                const url = '/land';
-                console.log('url: ' + url);
-                axios.get(url)
-                    .then(response => {
-                        console.log(response.data);
-                        this.command_success = response.data['command_success'];
-                        this.command_status_message = response.data['command_status_message'];
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-            },
-            refresh_data: function (param1) {
-                console.log('refresh data function called: ' + param1)
-                axios.get(param1)
-                    .then(response => {
-                        console.log(response.data);
-                        this.rows = response.data.rows;
-                        this.columns = response.data.columns;
-
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
             }
-        }
-    });
+        });
 
 </script>
 

@@ -330,9 +330,22 @@ def set_top_led():
             r = int(request.json['red'])
             g = int(request.json['green'])
             b = int(request.json['blue'])
-            print(r, g, b)
+            r2 = int(request.json['red2'])
+            g2 = int(request.json['green2'])
+            b2 = int(request.json['blue2'])
+            mode = request.json['mode']
+            freq = int(request.json['freq'])
+
             if tello_reference:
-                tello_reference.set_top_led(r=r, g=g, b=b)
+                if mode == 'color':
+                    tello_reference.set_top_led(r=r, g=g, b=b)
+                elif mode == 'pulse':
+                    tello_reference.pulse_top_led(r=r, g=g, b=b, freq=freq/10)
+                elif mode == 'flash':
+                    tello_reference.alternate_top_led(r1=r, g1=g, b1=b, r2=r2, g2=g2, b2=b2, freq=freq/10)
+                else:
+                    print(f"Invalid Top Led Mode: {mode}")
+                    tello_reference.set_top_led(r=r, g=g, b=b)
     except:
         command_status_message = "Could not set top led"
         command_success = False
