@@ -364,19 +364,23 @@ def display_image():
             image_index = int(request.json['image_index'])
             display_color = request.json['display_color']
             if tello_reference:
+                rtn = ''
                 if image_index == 1:
                     print(image_string)
-                    tello_reference.display_image(image_string, display_color=display_color)
+                    rtn = tello_reference.display_image(image_string)
                 elif image_index == 2:
-                    tello_reference.display_heart(display_color=display_color)
+                    rtn = tello_reference.display_heart(display_color=display_color)
                 elif image_index == 3:
-                    tello_reference.display_smile(display_color=display_color)
+                    rtn = tello_reference.display_smile(display_color=display_color)
                 elif image_index == 4:
-                    tello_reference.display_sad(display_color=display_color)
+                    rtn = tello_reference.display_sad(display_color=display_color)
                 elif image_index == 5:
-                    tello_reference.clear_display()
+                    rtn = tello_reference.clear_display()
 
-    except:
+                print(f"display image rtn: {rtn}")
+
+    except Exception as exc:
+        print(f"Display Image Exception: {exc}")
         command_status_message = "Could not display image string"
         command_success = False
 
