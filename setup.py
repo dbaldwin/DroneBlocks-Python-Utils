@@ -17,8 +17,8 @@ setup(
     author_email='theyoungsoul@gmail.com',
     description='DroneBlocks Python Utilities',
     install_requires=[
-        'opencv-python==4.5.3.56',
-        'opencv-contrib-python==4.5.3.56',
+        'opencv-python==4.5.5.62',
+        'opencv-contrib-python==4.5.5.62',
         'imutils==0.5.4',
         'djitellopy==2.4',
         'bottle==0.12.19'

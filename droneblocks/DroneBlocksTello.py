@@ -69,7 +69,7 @@ class DroneBlocksTello(Tello):
 
     def alternate_top_led(self, r1: int, g1: int, b1: int, r2: int = 0, g2: int = 0, b2: int = 0,
                           freq: float = 2.5) -> str:
-        freq = max(min(freq, 2.5), 0.1)
+        freq = max(min(freq, 10), 0.1)
 
         return self.send_command_with_return(f"EXT led bl {freq} {r1} {g1} {b1} {r2} {g2} {b2}")
 
