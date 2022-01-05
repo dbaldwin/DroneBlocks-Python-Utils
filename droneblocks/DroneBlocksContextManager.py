@@ -39,19 +39,26 @@ class DroneBlocksContextManager():
             print(f"Exception Traceback: {exc_tb}")
 
         if self.motor_on:
-            self.db_tello.turn_motor_off()
-
-        self.db_tello.end()
+            try:
+                self.db_tello.turn_motor_off()
+            except:
+                # guard against the motor off command failing
+                # if this happens let the 'end' method handle it.
+                print("WARN: turn motors off failed")
 
         try:
-            # if the drone does not support the sdk
-            # version call, then the return is
-            # an error message not a number as a string
-            # so just let the except block eat it
-            if int(self.db_tello.query_sdk_version()) >= 30:
-                self.db_tello.clear_everything()
+            # I tried to get the version but did not find a way
+            # to do so.  Instead just call clear_everything and if
+            # its a tello a exception will be thrown and we will
+            # just eat it
+            self.db_tello.clear_everything()
         except:
             pass
+
+        try:
+            self.db_tello.end()
+        except:
+            print("WARN: 'end' failed to complete")
 
 if __name__ == '__main__':
     # example usage turning cooling motor on

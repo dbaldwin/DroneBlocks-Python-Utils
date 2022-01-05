@@ -49,11 +49,6 @@ ORIGINAL_VIDEO_WINDOW_NAME = "Raw Tello Video"
 
 ui_elements = []
 
-# True - write to the console the key value that was pressed
-# False - do not write to the console
-# useful to debug to get the actual key value for specific keyboards.
-LOG_KEY_PRESS_VALUES = False
-
 # Global value holding the last key pressed.
 # value will be key from the tello_keyboard_mapper.py file
 g_key_press_value = None
@@ -69,8 +64,10 @@ speed_y = 0
 speed_z = 0
 height = 0
 
-DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS = 30
-DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS = 90
+# global reference to the stop event.  Used in
+# signal handler for keyboard interrupts to
+# alert script management to stop
+g_stop_event = None
 
 
 # function to handle keyboard interrupt
@@ -82,11 +79,28 @@ def signal_handler(sig, frame):
 
 def shutdown_gracefully():
     print("Tello Script Runner Shutdown.......")
+
+    try:
+        if g_stop_event is not None:
+            g_stop_event.set()
+            time.sleep(2)  # give the system a couple of seconds to respond
+    except:
+        pass
+
     if tello:
         try:
             print("Stop all Tello operations")
             tello.end()
             tello.turn_motor_off()
+        except:
+            pass
+
+        try:
+            # I tried to get the version but did not find a way
+            # to do so.  Instead just call clear_everything and if
+            # its a tello a exception will be thrown and we will
+            # just eat it
+            tello.clear_everything()
         except:
             pass
 
@@ -101,6 +115,7 @@ def shutdown_gracefully():
 
 
 tello_image = None
+
 
 def _get_video_frame(frame_read, vid_sim):
     global IMAGE_HEIGHT
@@ -161,10 +176,7 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
             params['fly_flag'] = fly
             params['last_key_pressed'] = g_key_press_value
 
-            new_key_map = init_method(tello, params)
-            if new_key_map is not None:
-                for k, v in new_key_map.items():
-                    keymapper.mapping[k] = v
+            init_method(tello, params)
 
         frame_read = None
         if tello and video_queue:
@@ -251,8 +263,9 @@ def process_tello_video_feed(handler_file, video_queue, stop_event, video_event,
 
 
 def main():
-    global LOG_KEY_PRESS_VALUES, DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS, DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS, speed
+    global speed
     global tello
+    global g_stop_event
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -260,11 +273,6 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--test-install", action='store_true', help="Test the command can run, then exit and do nothing. ")
     ap.add_argument("--display-video", action='store_true', help="Display Drone video using OpenCV.")
-    ap.add_argument("--display-unknown-keyvalue", action='store_true', help="Display value of unknown keyboard values.")
-    ap.add_argument("--keyboard-flying-distance", type=int, default=30,
-                    help="When using keyboard to fly, this is the default distance in cm to fly. Default=30")
-    ap.add_argument("--keyboard-flying-rotation", type=int, default=90,
-                    help="When using keyboard to fly, this is the default rotation in degrees to rotate. Default=90")
 
     ap.add_argument("--handler", type=str, required=False, default="",
                     help="Name of the python file with an init and handler method.  Do not include the .py extension and it has to be in the same folder as this main driver")
@@ -278,8 +286,10 @@ def main():
                                help="Flag to control whether to use the computer webcam as a simulated Tello video feed. Default: False")
     ap.add_argument("--show-original-video", action='store_true',
                     help="Flag to control whether to show the original video frame from the Tello along with frame processed by the handler function. Default: False")
-    ap.add_argument("--tello-web", action='store_true', help="Default: False. Start the Tello control web application at url:  http://localhost:8080")
-    ap.add_argument("--web-port", required=False, default=8080, type=int, help="Port to start web server on.  Default: 8080")
+    ap.add_argument("--tello-web", action='store_true',
+                    help="Default: False. Start the Tello control web application at url:  http://localhost:8080")
+    ap.add_argument("--web-port", required=False, default=8080, type=int,
+                    help="Port to start web server on.  Default: 8080")
 
     args = vars(ap.parse_args())
     if args['test_install']:
@@ -318,13 +328,6 @@ def main():
     if tello_video_sim:
         display_video = True
         show_original_frame = False
-
-    # display unknown keyboard key values in Cmd window and in console
-    if args['display_unknown_keyvalue']:
-        LOG_KEY_PRESS_VALUES = True
-
-    DEFAULT_DISTANCE_FOR_KEYBOARD_COMMANDS = args['keyboard_flying_distance']
-    DEFAULT_YAW_ROTATION_FOR_KEYBOARD_COMMANDS = args['keyboard_flying_rotation']
 
     # video queue to hold the frames from the Tello
     video_queue = None
@@ -370,6 +373,7 @@ def main():
         # ---------------------------- Initialize background processing thread and script runner --------
         # if the user did not specify a handler function, do not create the background thread
         stop_event = threading.Event()
+        g_stop_event = stop_event
         if handler_file is not None:
             ready_to_show_video_event = threading.Event()
             p1 = threading.Thread(target=process_tello_video_feed,
@@ -397,6 +401,9 @@ def main():
         # wait one second for the process thread to kick in
         time.sleep(1)
         frame_read = None
+        # -----------------------------------------------------------
+        # ---------------------------- PROCESSING LOOP --------------
+        # -----------------------------------------------------------
         while True:
             # this can become a very tight loop
             # there are use cases where you might not want to do anything
@@ -432,7 +439,6 @@ def main():
                 # exits
                 time.sleep(3)
                 break
-
 
             ready_to_show_video_event.set()
             try:
@@ -476,6 +482,14 @@ def main():
                     cv2.waitKey(1)
                 except Exception as exc:
                     LOGGER.error(f"Display Queue Error: {exc}")
+
+            # Give the user a chance to exit the script
+            # if the user presses q or ESC set the stop_event and exit
+            key_value = cv2.waitKey(2) & 0xFF
+            if key_value == ord('q') or key_value == 27:
+                stop_event.set()
+
+
 
     finally:
         LOGGER.debug("Complete...")
