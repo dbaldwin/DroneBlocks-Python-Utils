@@ -26,7 +26,7 @@ pip install /Users/patrickryan/Development/droneblocks/DroneBlocks-Python-Utils
 ### Simple Tello Example
 
 ```python
-from droneblocks import DroneBlocksTello
+from droneblocks.DroneBlocksTello import DroneBlocksTello
 
 tello = DroneBlocksTello()
 
@@ -43,7 +43,7 @@ tello.land()
 
 ### Simple Robomast TT Example
 ```python
-from droneblocks import DroneBlocksTello
+from droneblocks.DroneBlocksTello import DroneBlocksTello
 import time
 
 tello = DroneBlocksTello()
