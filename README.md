@@ -61,3 +61,16 @@ tello.clear_display()
 tello.land()
 
 ```
+
+### Tello Example
+
+in a terminal type:
+```shell
+python -m droneblocks.tello_web
+```
+
+You can then open a browser and type the following url:
+
+`http://localhost:8080`
+
+and you should see a web page that allows you to interact with the Tello.
