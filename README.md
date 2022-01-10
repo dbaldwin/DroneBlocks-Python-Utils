@@ -12,13 +12,7 @@ Some of the features:
 
 ### Install using pip
 ```shell
-pip install https://github.com/dbaldwin/DroneBlocks-Python-Utils/archive/master.zip
-```
-
-#### Locally
-```shell
-pip install /Users/patrickryan/Development/droneblocks/DroneBlocks-Python-Utils
-
+pip install droneblocks-python-utils
 ```
 
 ## Usage
@@ -41,7 +35,7 @@ tello.land()
 
 ```
 
-### Simple Robomast TT Example
+### Simple Robomaster TT Example
 ```python
 from droneblocks.DroneBlocksTello import DroneBlocksTello
 import time

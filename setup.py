@@ -1,9 +1,12 @@
 from setuptools import setup, find_packages
 from glob import glob
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name='droneblocks-python-utils',
-    version='0.1.2',
+    version='0.1.5',
     packages=['droneblocks', 'droneblocksutils'],
     include_package_data=True,
     package_data={
@@ -13,9 +16,11 @@ setup(
     },
     url='https://github.com/dbaldwin/DroneBlocks-Python-Utils',
     license='MIT',
-    author='patrick ryan',
+    author='Patrick Ryan',
     author_email='theyoungsoul@gmail.com',
     description='DroneBlocks Python Utilities',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     install_requires=[
         'opencv-python==4.5.5.62',
         'opencv-contrib-python==4.5.5.62',
