@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='droneblocks-python-utils',
-    version='0.1.5',
+    version='0.1.7',
     packages=['droneblocks', 'droneblocksutils'],
     include_package_data=True,
     package_data={
@@ -19,7 +19,7 @@ setup(
     author='Patrick Ryan, Dennis Baldwin',
     author_email='db@droneblocks.io',
     description='DroneBlocks Python Utilities',
-    long_description='Set of Python utilities to support the DroneBlocks Python courses',
+    long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=[
         'opencv-python==4.5.5.62',
