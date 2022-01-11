@@ -16,10 +16,10 @@ setup(
     },
     url='https://github.com/dbaldwin/DroneBlocks-Python-Utils',
     license='MIT',
-    author='Patrick Ryan',
-    author_email='theyoungsoul@gmail.com',
+    author='Patrick Ryan, Dennis Baldwin',
+    author_email='db@droneblocks.io',
     description='DroneBlocks Python Utilities',
-    long_description=long_description,
+    long_description='Set of Python utilities to support the DroneBlocks Python courses',
     long_description_content_type="text/markdown",
     install_requires=[
         'opencv-python==4.5.5.62',
