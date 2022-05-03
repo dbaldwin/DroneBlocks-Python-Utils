@@ -97,6 +97,8 @@ class DroneBlocksTello(Tello):
         return self.send_command_with_return(f"EXT mled s {display_color} heart")
 
     def display_character(self, single_character: str, display_color: str = PURPLE) -> str:
+        # make sure single_character is a string, not a number
+        single_character = f"{single_character}"
         if len(single_character) > 0:
             # then just take the first character
             single_character = single_character[0]
