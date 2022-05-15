@@ -28,7 +28,7 @@ current_rc_control_time = 0
 mission_pad_enabled = False
 
 # is the drone a Tello ( i.e. SDK 2.x ) or a Robomaster Tello ( i.e. SDK 3.x )
-is_rmtt_drone = False
+is_rmtt_drone = None
 
 # command history
 # keep a list of commands so we can make sure everything is being executed
@@ -48,7 +48,7 @@ tello_state = {
     'command_history': [],
     'detected_mission_pad': -2,
     'mission_pad_enabled': mission_pad_enabled,
-    'is_rmtt_drone': is_rmtt_drone,
+    'is_rmtt_drone': False,
     'display_brightness': default_brightness
 
 }
@@ -219,13 +219,14 @@ def _refresh_tello_state():
             # thenç the mission pads must have been enabled outside the web api
             mission_pad_enabled = True
 
-        try:
-            if int(tello_reference.query_sdk_version()) >= 30:
-                is_rmtt_drone = True
-                tello_state['is_rmtt_drone'] = is_rmtt_drone
-        except:
-            is_rmtt_drone = False
-            tello_state['is_rmtt_drone'] = is_rmtt_drone
+        if is_rmtt_drone is None:
+            try:
+                if int(tello_reference.query_sdk_version()) >= 30:
+                    is_rmtt_drone = True
+            except:
+                is_rmtt_drone = False
+
+        tello_state['is_rmtt_drone'] = is_rmtt_drone
 
         if not initial_brightness_set:
             initial_brightness_set = True
@@ -512,11 +513,13 @@ def land():
     return dict(command_success=command_success, command_status_message=command_status_message)
 
 
-def web_main(tello, stop_event=None, port=8080):
-    global tello_reference, web_root, web_stop_event
+def web_main(tello, stop_event=None, port=8080, sdk_version=20):
+    global tello_reference, web_root, web_stop_event, is_rmtt_drone
     web_stop_event = stop_event
 
-    print("Starting Tello Web Server.....")
+    is_rmtt_drone = True if sdk_version >= 30 else False
+
+    print(f"Starting Tello Web Server.....{is_rmtt_drone}")
 
     tello_reference = tello
     droneblocks_package = pkgutil.get_loader("droneblocks")
@@ -555,7 +558,14 @@ if __name__ == '__main__':
             db_tello.LOGGER.setLevel(logging.ERROR)
 
             db_tello.connect()
-            web_main(db_tello, stop_event=None, port=port)
+            time.sleep(0.5)
+            try:
+                sdk_version = int(db_tello.query_sdk_version())
+            except Exception as exc:
+                # assume regular tello
+                sdk_version = 20
+
+            web_main(db_tello, stop_event=None, port=port, sdk_version=sdk_version)
         except Exception as exc:
             print("Exception in tello web: ")
             print(exc)

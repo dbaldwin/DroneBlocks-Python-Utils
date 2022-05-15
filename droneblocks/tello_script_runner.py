@@ -360,6 +360,12 @@ def main():
         tello = DroneBlocksTello()
         tello.connect()
         speed = tello.get_speed()
+        time.sleep(0.5)
+        try:
+            sdk_version = int(tello.query_sdk_version())
+        except Exception as exc:
+            # assume regular tello
+            sdk_version=20
 
         # If the user wants to see the Tello video from the handler
         # or the raw video from the Tello AND we are not simulating
@@ -389,8 +395,10 @@ def main():
         # ---------------------------- Initialize Web Server --------
         # -----------------------------------------------------------
         if start_tello_web:
+            print(f"Starting Tello Web with SDK Version: {sdk_version}")
+
             p2 = threading.Thread(target=web_main,
-                                  args=(tello, stop_event, web_port
+                                  args=(tello, stop_event, web_port, sdk_version
                                         ))
             p2.setDaemon(True)
             p2.start()

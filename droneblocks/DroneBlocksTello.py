@@ -23,6 +23,21 @@ class DroneBlocksTello(Tello):
         super().__init__()
         self.last_speed_value = 0
 
+    def query_hardware(self):
+        """
+
+        :return: "RMTT" if using the Controller on top of the RMTT, or "TELLO", if using a Tello or RMTT without
+        the controller.
+        :rtype:
+        """
+        try:
+            hardware = self.send_read_command('hardware?')
+        except Exception as exc:
+            hardware = "TELLO"
+
+        return hardware
+
+
     @classmethod
     def get_blank_display_matrix(cls):
         return "0000000000000000000000000000000000000000000000000000000000000000"
@@ -216,6 +231,7 @@ class DroneBlocksTello(Tello):
             z2 = self._inches_to_cm(z2)
 
         self.curve_xyz_speed(x1, y1, z1, x2, y2, z2, 50)
+
 if __name__ == '__main__':
     import time
 
