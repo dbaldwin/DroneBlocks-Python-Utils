@@ -221,12 +221,16 @@ def _refresh_tello_state():
 
         if is_rmtt_drone is None:
             try:
-                if int(tello_reference.query_sdk_version()) >= 30:
+                tt_version = int(tello_reference.query_sdk_version())
+                print(tt_version)
+                if  tt_version >= 30:
                     is_rmtt_drone = True
+                    tello_state['is_rmtt_drone'] = is_rmtt_drone
+                else:
+                    is_rmtt_drone = False
             except:
-                is_rmtt_drone = False
+                is_rmtt_drone = None # leave it as None, and we can check again
 
-        tello_state['is_rmtt_drone'] = is_rmtt_drone
 
         if not initial_brightness_set:
             initial_brightness_set = True
@@ -517,9 +521,12 @@ def web_main(tello, stop_event=None, port=8080, sdk_version=20):
     global tello_reference, web_root, web_stop_event, is_rmtt_drone
     web_stop_event = stop_event
 
-    is_rmtt_drone = True if sdk_version >= 30 else False
+    if sdk_version is not None:
+        is_rmtt_drone = True if sdk_version >= 30 else False
+        print(f"Starting Tello Web Server.....SDK: {sdk_version}, {is_rmtt_drone}")
+    else:
+        print(f"Starting Tello Web Server.....")
 
-    print(f"Starting Tello Web Server.....{is_rmtt_drone}")
 
     tello_reference = tello
     droneblocks_package = pkgutil.get_loader("droneblocks")
@@ -561,9 +568,12 @@ if __name__ == '__main__':
             time.sleep(0.5)
             try:
                 sdk_version = int(db_tello.query_sdk_version())
+                print(f"SDK Version: {sdk_version}")
+                print(f"Hardware: {db_tello.query_hardware()}")
+
             except Exception as exc:
-                # assume regular tello
-                sdk_version = 20
+                # Assume None
+                sdk_version = None
 
             web_main(db_tello, stop_event=None, port=port, sdk_version=sdk_version)
         except Exception as exc:

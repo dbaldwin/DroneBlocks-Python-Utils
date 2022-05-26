@@ -22,8 +22,9 @@ class DroneBlocksContextManager():
             self.db_tello.turn_motor_on()
 
         if self.start_tello_web:
+            sdk_version = None # the context manager does not determine the sdk version
             p2 = threading.Thread(target=web_main,
-                                  args=(self.db_tello,))
+                                  args=(self.db_tello,None,8080,sdk_version))
             p2.setDaemon(True)
             p2.start()
 
