@@ -1,4 +1,5 @@
 from djitellopy import Tello
+import time
 
 
 class DroneBlocksTello(Tello):
@@ -19,9 +20,45 @@ class DroneBlocksTello(Tello):
     right_arrow_image = "0000000000000b0000000bb00bbbbbbb0bbbbbbb00000bb000000b0000000000"
     question_mark = "000bb00000b00b0000b00b0000000b000000b0000000b000000000000000b000"
 
-    def __init__(self):
+    def __init__(self, ignore_tello_talent_methods=False):
         super().__init__()
         self.last_speed_value = 0
+        self.ignore_tello_talent_methods = ignore_tello_talent_methods
+
+    def send_expansion_command(self, expansion_cmd: str):
+        if self.ignore_tello_talent_methods:
+            return
+        else:
+            return super().send_expansion_command(expansion_cmd)
+
+    def xxxsend_control_command(self, command: str, timeout: int = Tello.RESPONSE_TIMEOUT) -> bool:
+        """
+        This is a wholesale re-implementation of the Tello send_control_command
+        method.
+
+        The reason, is that with the EXT commands sometimes, and it is not clear why,
+        the TT will respond to a command with 'led ok', when the command was not issued.  The
+        Tello implementation of this method only looks for '*ok*'
+
+        Send control command to Tello and wait for its response.
+        Internal method, you normally wouldn't call this yourself.
+        """
+        response = "max retries exceeded"
+        for i in range(0, self.retry_count):
+            response = self.send_command_with_return(command, timeout=timeout)
+            if command.startswith('EXT'):
+                if response.lower() in ['led ok', 'matrix ok', 'mled ok']:
+                    return True
+            elif command in ['takeoff'] and 'ok' in response.lower():
+                return True
+            else:
+                if response.lower() not in ['led ok', 'matrix ok', 'mled ok'] and 'ok' in response.lower():
+                    return True
+
+            self.LOGGER.debug("Command attempt #{} failed for command: '{}'".format(i, command))
+
+        self.raise_result_error(command, response)
+        return False # never reached
 
     def query_hardware(self):
         """
@@ -43,7 +80,7 @@ class DroneBlocksTello(Tello):
         return "0000000000000000000000000000000000000000000000000000000000000000"
 
     def _display_pattern(self, flattened_matrix: str) -> str:
-        return self.send_command_with_return(f"EXT mled g {flattened_matrix}")
+        return self.send_expansion_command(f"mled g {flattened_matrix}")
 
     def get_speed(self) -> int:
         """Query speed setting (cm/s)
@@ -72,13 +109,16 @@ class DroneBlocksTello(Tello):
         freq = max(min(freq, 2.5), 0.1)
 
         if 0.1 <= freq <= 2.5 and 0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255:
-            return self.send_command_with_return(f"EXT led br {freq} {r} {g} {b}")
+            return self.send_expansion_command(f"led br {freq} {r} {g} {b}")
         else:
             return f"ERROR: Invalid input parameters"
 
     def set_top_led(self, r: int, g: int, b: int) -> str:
+        time.sleep(0.5)
         if 0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255:
-            return self.send_command_with_return(f"EXT led {r} {g} {b}")
+            rtn = self.send_expansion_command(f"led {r} {g} {b}")
+            print(f"set_top_led done: {rtn}")
+            return rtn
         else:
             return "error"
 
@@ -86,7 +126,7 @@ class DroneBlocksTello(Tello):
                           freq: float = 2.5) -> str:
         freq = max(min(freq, 10), 0.1)
 
-        return self.send_command_with_return(f"EXT led bl {freq} {r1} {g1} {b1} {r2} {g2} {b2}")
+        return self.send_expansion_command(f"led bl {freq} {r1} {g1} {b1} {r2} {g2} {b2}")
 
     def change_image_color(self, image_string: str, from_color: str, to_color: str) -> str:
         new_str = image_string.replace(from_color, to_color)
@@ -101,7 +141,7 @@ class DroneBlocksTello(Tello):
 
     def set_display_brightness(self, level: int) -> str:
         if 0 <= level <= 255:
-            return self.send_command_with_return(f"EXT mled sl {level}")
+            return self.send_expansion_command(f"mled sl {level}")
         return 'Invalid level value'
 
     def clear_everything(self):
@@ -109,7 +149,7 @@ class DroneBlocksTello(Tello):
         self.set_top_led(r=0, g=0, b=0)
 
     def display_heart(self, display_color: str = PURPLE) -> str:
-        return self.send_command_with_return(f"EXT mled s {display_color} heart")
+        return self.send_expansion_command(f"mled s {display_color} heart")
 
     def display_character(self, single_character: str, display_color: str = PURPLE) -> str:
         # make sure single_character is a string, not a number
@@ -117,7 +157,7 @@ class DroneBlocksTello(Tello):
         if len(single_character) > 0:
             # then just take the first character
             single_character = single_character[0]
-        return self.send_command_with_return(f"EXT mled s {display_color} {single_character}")
+        return self.send_expansion_command(f"mled s {display_color} {single_character}")
 
     def display_smile(self, display_color: str = PURPLE) -> str:
         smile = self.change_image_color(DroneBlocksTello.smile_image, DroneBlocksTello.BLUE, display_color)
@@ -148,7 +188,7 @@ class DroneBlocksTello(Tello):
         return self._display_pattern(question)
 
     def scroll_image(self, image_string: str, scroll_dir: str, rate: float = 2.5) -> str:
-        return self.send_command_with_return(f"EXT mled {scroll_dir} g {rate} {image_string}")
+        return self.send_expansion_command(f"mled {scroll_dir} g {rate} {image_string}")
 
     def scroll_string(self, message: str, scroll_dir: str = LEFT, display_color: str = PURPLE,
                       rate: float = 2.5) -> str:
@@ -156,7 +196,7 @@ class DroneBlocksTello(Tello):
         if len(message) > 70:
             message = message[0:70]
 
-        return self.send_command_with_return(f"EXT mled {scroll_dir} {display_color} {rate} {message}")
+        return self.send_expansion_command(f"mled {scroll_dir} {display_color} {rate} {message}")
 
     # it appears that the EXT tof? command returns: unknown command: keepalive
     # along with the value.  Seems like a tello bug.
@@ -164,11 +204,11 @@ class DroneBlocksTello(Tello):
     # value that was read from the tello.
     def get_controller_tof(self) -> str:
         global last_known_good_tof
-        mm_value = self.send_command_with_return("EXT tof?")
+        mm_value = self.send_expansion_command("tof?")
         if mm_value is not None and mm_value == "unknown command: keepalive":
-            mm_value = self.send_command_with_return("EXT tof?")
+            mm_value = self.send_expansion_command("tof?")
         # 10 mm = 1 cm
-        print(f"send_command_with_return Rtn Value: {mm_value}")
+        print(f"send_expansion_command Rtn Value: {mm_value}")
 
         try:
             mm_value = mm_value.replace("tof ", '')
@@ -180,7 +220,7 @@ class DroneBlocksTello(Tello):
 
     # ----------------  fly_xyz api to match the droneblocks simulator tello
     def _inches_to_cm(self, inch_value):
-        return inch_value * 2.54
+        return int(inch_value * 2.54)
 
     def fly_up(self, x, units):
         if units == 'in':
@@ -206,6 +246,7 @@ class DroneBlocksTello(Tello):
         if units == 'in':
             x = self._inches_to_cm(x)
         self.move_forward(x)
+        print("fly_forward done")
 
     def fly_backward(self, x, units):
         if units == 'in':
