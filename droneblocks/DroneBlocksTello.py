@@ -1,5 +1,19 @@
 from djitellopy import Tello
-import time
+import threading
+from collections import UserList
+from typing import  Dict, Tuple
+
+class TelloResponseList(UserList):
+    def __init__(self, *args: Tuple, **kwargs: Dict
+                 ) -> None:
+        super().__init__(*args, **kwargs)
+        self.ignore_responses = ['unknown command: keepalive']
+
+    def append(self, item) -> None:
+        print(f"TRL: {item.decode('utf-8')}")
+        if item.decode("utf-8") not in self.ignore_responses:
+            print(".... append")
+            super().append(item)
 
 
 class DroneBlocksTello(Tello):
@@ -24,6 +38,7 @@ class DroneBlocksTello(Tello):
         super().__init__()
         self.last_speed_value = 0
         self.ignore_tello_talent_methods = ignore_tello_talent_methods
+        self.send_command_with_return_lock = threading.Lock()
 
     def send_expansion_command(self, expansion_cmd: str):
         if self.ignore_tello_talent_methods:
@@ -31,34 +46,17 @@ class DroneBlocksTello(Tello):
         else:
             return super().send_expansion_command(expansion_cmd)
 
-    def xxxsend_control_command(self, command: str, timeout: int = Tello.RESPONSE_TIMEOUT) -> bool:
-        """
-        This is a wholesale re-implementation of the Tello send_control_command
-        method.
-
-        The reason, is that with the EXT commands sometimes, and it is not clear why,
-        the TT will respond to a command with 'led ok', when the command was not issued.  The
-        Tello implementation of this method only looks for '*ok*'
-
-        Send control command to Tello and wait for its response.
+    def send_command_with_return(self, command: str, timeout: int = Tello.RESPONSE_TIMEOUT) -> str:
+        """Send command to Tello and wait for its response.
         Internal method, you normally wouldn't call this yourself.
+        Return:
+            bool/str: str with response text on success, False when unsuccessfull.
         """
-        response = "max retries exceeded"
-        for i in range(0, self.retry_count):
-            response = self.send_command_with_return(command, timeout=timeout)
-            if command.startswith('EXT'):
-                if response.lower() in ['led ok', 'matrix ok', 'mled ok']:
-                    return True
-            elif command in ['takeoff'] and 'ok' in response.lower():
-                return True
-            else:
-                if response.lower() not in ['led ok', 'matrix ok', 'mled ok'] and 'ok' in response.lower():
-                    return True
 
-            self.LOGGER.debug("Command attempt #{} failed for command: '{}'".format(i, command))
-
-        self.raise_result_error(command, response)
-        return False # never reached
+        with self.send_command_with_return_lock:
+            self.get_own_udp_object()['responses'] = TelloResponseList()
+            response = super().send_command_with_return(command=command, timeout=timeout)
+        return response
 
     def query_hardware(self):
         """
@@ -114,10 +112,8 @@ class DroneBlocksTello(Tello):
             return f"ERROR: Invalid input parameters"
 
     def set_top_led(self, r: int, g: int, b: int) -> str:
-        time.sleep(0.5)
         if 0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255:
             rtn = self.send_expansion_command(f"led {r} {g} {b}")
-            print(f"set_top_led done: {rtn}")
             return rtn
         else:
             return "error"
