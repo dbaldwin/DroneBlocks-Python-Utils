@@ -7,14 +7,15 @@ import threading
 
 class DroneBlocksContextManager():
 
-    def __init__(self, motor_on=False, start_tello_web=False, log_level=logging.ERROR):
+    def __init__(self, motor_on=False, start_tello_web=False, log_level=logging.ERROR, ignore_tello_talent_methods=False):
         self.motor_on = motor_on
         self.db_tello = None
         self.log_level = log_level
         self.start_tello_web = start_tello_web
+        self.ignore_tello_talent_methods = ignore_tello_talent_methods
 
     def __enter__(self):
-        self.db_tello = DroneBlocksTello()
+        self.db_tello = DroneBlocksTello(ignore_tello_talent_methods=self.ignore_tello_talent_methods)
         self.db_tello.LOGGER.setLevel(self.log_level)
 
         self.db_tello.connect()
@@ -47,14 +48,6 @@ class DroneBlocksContextManager():
                 # if this happens let the 'end' method handle it.
                 print("WARN: turn motors off failed")
 
-        try:
-            # I tried to get the version but did not find a way
-            # to do so.  Instead just call clear_everything and if
-            # its a tello a exception will be thrown and we will
-            # just eat it
-            self.db_tello.clear_everything()
-        except:
-            pass
 
         try:
             self.db_tello.end()
