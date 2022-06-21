@@ -10,9 +10,9 @@ class TelloResponseList(UserList):
         self.ignore_responses = ['unknown command: keepalive']
 
     def append(self, item) -> None:
-        print(f"TRL: {item.decode('utf-8')}")
+        # print(f"TRL: {item.decode('utf-8')}")
         if item.decode("utf-8") not in self.ignore_responses:
-            print(".... append")
+            # print(".... append")
             super().append(item)
 
 
