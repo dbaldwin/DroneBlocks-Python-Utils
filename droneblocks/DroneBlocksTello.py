@@ -204,7 +204,7 @@ class DroneBlocksTello(Tello):
         if mm_value is not None and mm_value == "unknown command: keepalive":
             mm_value = self.send_expansion_command("tof?")
         # 10 mm = 1 cm
-        print(f"send_expansion_command Rtn Value: {mm_value}")
+        # print(f"send_expansion_command Rtn Value: {mm_value}")
 
         try:
             mm_value = mm_value.replace("tof ", '')
@@ -242,7 +242,6 @@ class DroneBlocksTello(Tello):
         if units == 'in':
             x = self._inches_to_cm(x)
         self.move_forward(x)
-        print("fly_forward done")
 
     def fly_backward(self, x, units):
         if units == 'in':
